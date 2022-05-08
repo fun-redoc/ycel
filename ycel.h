@@ -1,6 +1,8 @@
 #ifndef __YCEL_H__
 #define __YCEL_H__
 
+#include "string_buffer_view.h"
+
 typedef enum {
     SUCCESS,
     ERR
@@ -25,8 +27,8 @@ static char *kind_names[] = {"EMPTY","NUM","TEXT","FORMULA"};
 
 typedef union {
     double number;
-    char*  text;
-    char*  formula;
+    TStringView swText;
+    TStringView swFormula;
 } UCell;
 
 typedef struct {

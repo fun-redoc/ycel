@@ -20,11 +20,12 @@ void init_string_buffer(TStringBuffer *sb, size_t initialSize)
     sb->buffer = calloc(sb->max, sizeof(char));
 }
 
-void append_string_buffer(TStringBuffer *sb, const char *str)
+TStringView append_string_buffer(TStringBuffer *sb, const char *str)
 {
     assert(sb);
     assert(str);
     size_t len = strlen(str);
+    size_t start = sb->last;
     if(sb->last + len >= sb->max)
     {
         sb->max = sb->max * 2 + 1 ;
@@ -35,7 +36,11 @@ void append_string_buffer(TStringBuffer *sb, const char *str)
     strcpy(sb->buffer + sb->last, str);
     sb->last += len+1;
 
-    return;
+    TStringView sw;
+    sw.sb = sb;
+    sw.start = start;
+    NOTHING(size_t,sw.len);
+    return sw;
     error:
         fprintf(stderr, "Failed to alloc buffer in %s %d\n", __FILE__, __LINE__);
         exit(1);

@@ -43,20 +43,6 @@ error:
  void free_cell_heap(TCellHeap *t) {
      if(t) {
          if(t->cells){
-            for(int i=0; i<t->last;i++) {
-                // TODO Refactor using free_cell
-                switch (t->cells[i].kind)
-                {
-                    case KIND_TEXT:
-                        free(t->cells[i].as.text);
-                        break;
-                    case KIND_FORMULA:
-                        free(t->cells[i].as.formula);
-                        break;
-                    default:
-                        break;
-                }
-            }
             free(t->cells);
          }
          free(t);
@@ -78,10 +64,10 @@ error:
                         fprintf(f,"%.2f",c->as.number);
                         break;
                     case KIND_TEXT:
-                        fprintf(f, "%s", c->as.text);
+                        fprintf(f, "%s", get_string(&c->as.swText));
                         break;
                     case KIND_FORMULA:
-                        fprintf(f, "%s", c->as.formula);
+                        fprintf(f, "%s", get_string(&c->as.swFormula));
                         break;
                     default:
                         break;
@@ -109,20 +95,20 @@ void fill_num_cell(TCell *c, size_t row, size_t col, double num)
     c->as.number = num;
 }
 
-void fill_text_cell(TCell *c, size_t row, size_t col, const char *str)
+void fill_text_cell(TCell *c, size_t row, size_t col, const TStringView *sw)
 {
     c->row = row;
     c->col = col;
     c->kind = KIND_TEXT;
-    c->as.text = strdup(str);
+    c->as.swText = *sw;
 }
 
-void fill_formula_cell(TCell *c, size_t row, size_t col, const char *str)
+void fill_formula_cell(TCell *c, size_t row, size_t col, const TStringView *sw)
 {
     c->row = row;
     c->col = col;
     c->kind = KIND_FORMULA;
-    c->as.formula = strdup(str);
+    c->as.swFormula = *sw;
 }
 
 void fill_empty_cell(TCell *c, size_t row, size_t col, const char *str)
@@ -155,14 +141,14 @@ EResult insert_num_into_table(TCellHeap *t, size_t row, size_t col, double num) 
     fill_num_cell(&cell, row,col,num);
     return insert_cell_into_table(t, row, col, cell);
 }
-EResult insert_text_into_table(TCellHeap *t, size_t row, size_t col, const char *str) {
+EResult insert_text_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw) {
     TCell cell;
-    fill_text_cell(&cell, row,col,str);
+    fill_text_cell(&cell, row,col,sw);
     return insert_cell_into_table(t, row, col, cell);
 }
-EResult insert_formula_into_table(TCellHeap *t, size_t row, size_t col, const char *str) {
+EResult insert_formula_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw) {
     TCell cell; 
-    fill_formula_cell(&cell, row,col,str);
+    fill_formula_cell(&cell, row,col,sw);
     return insert_cell_into_table(t, row, col, cell);
 }
 
@@ -210,6 +196,10 @@ void test_string_buffer() {
 
 int main(int argc, char *argv[])
 {
+   TStringView sw;
+   TStringBuffer sb;
+   init_string_buffer(&sb, INITIAL_STRING_BUFFER_SIZE);
+
    TCellHeap *t = init_cell_heap();
    EToken tkn;
 
@@ -237,12 +227,14 @@ int main(int argc, char *argv[])
         case TKN_STRING:
             printf("(%d,%d): %d %s %s\n", row, col, tkn, token_names[tkn], string_val);
             //printf("(%d,%d): %d %s\n", row, col, tkn, string_val);
-            DO(insert_text_into_table(t,row,col, string_val));
+            sw = append_string_buffer(&sb,string_val);
+            DO(insert_text_into_table(t,row,col, &sw));
             break;
         case TKN_FORMULA:
             printf("(%d,%d): %d %s %s\n", row, col, tkn, token_names[tkn], string_val);
             //printf("(%d,%d): %d %s\n", row, col, tkn, string_val);
-            DO(insert_formula_into_table(t,row,col,string_val));
+            sw = append_string_buffer(&sb,string_val);
+            DO(insert_formula_into_table(t,row,col,&sw));
             break;
         default:
             break;
