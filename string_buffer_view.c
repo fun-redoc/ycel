@@ -63,7 +63,7 @@ char *substr_dup_at(TStringBuffer *sb, size_t start, size_t len)
     return aux;
 }
 
-char *get_string(TStringView *sw)
+char *get_string(const TStringView *sw)
 {
     assert(IS_NOTHING2(sw->len));
     return string_at(sw->sb, sw->start);
@@ -80,4 +80,3 @@ char *dup_substr(TStringView *sw)
         return substr_dup_at(sw->sb, sw->start, MAYBE_VALUE_ACCESS(sw->len));
     }
 }
-

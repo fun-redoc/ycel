@@ -9,11 +9,16 @@
 // use with error lable in scope
 #define DO(proc) if(ERR==proc) goto error 
 
-#define INITIAL_STRING_BUFFER_SIZE 1
-#define INITIAL_TABLE_SIZE 1
+#define charBuffer_snprintf(b,f,...) {\
+    int res238279238479287;\
+    res238279238479287=snprintf(&((b)->cs[(b)->last]),(((b)->len)-((b)->last)),f,__VA_ARGS__);\
+    assert(res238279238479287>=0);\
+    (b)->last+=res238279238479287;\
+    assert(((b)->len)>((b)->last));}
 
 #define MIN(x,y) (x<y?x:y)
 #define MAX(x,y) (x<y?y:x)
+
 
 extern int yylex();
 extern char* yytext;
@@ -24,10 +29,13 @@ int col=0;
 char *string_val;
 double num_val;
 
+// prototypes
+void dump_node(TCharBuffer *buffer, const TNode *nd, const int level);
+
 TCellHeap *init_cell_heap() {
     TCellHeap *t = malloc(sizeof(TCellHeap));
     if(!t) {
-        fprintf(stderr, "cannot alloc table in %s %d.\n", __FILE__, __LINE__);
+        fprintf(stderr, "YCAL: cannot alloc table in %s %d.\n", __FILE__, __LINE__);
         goto error;
     }
     t->rows = 0;
@@ -50,42 +58,64 @@ error:
  }
 
  void dump_cell_heap(FILE *f, TCellHeap *t) {
+     TCharBuffer buffer;
+     clearCharBuffer(&buffer);
      if(t) {
-         fprintf(f,"Dump Cell Heap\n");
-         fprintf(f,"max=%zu, last=%zu, rows=%zu, cols=%zu\n", t->max, t->last, t->rows, t->cols);
+         //fprintf(f,"YCEL: Dump Cell Heap\n");
+         charBuffer_snprintf(&buffer, "%s","YCEL: Dump Cell Heap\n");
+         //fprintf(f,"YCEL: max=%zu, last=%zu, rows=%zu, cols=%zu\n", t->max, t->last, t->rows, t->cols);
+         charBuffer_snprintf(&buffer,"YCEL: max=%zu, last=%zu, rows=%zu, cols=%zu\n", t->max, t->last, t->rows, t->cols);
+
          if(t->cells){
             for(int i=0; i<t->last;i++) {
                 TCell *c = &(t->cells[i]);
-                fprintf(f,"Cell (%zu,%zu) of Kind %s; Value=", c->row, c->col, kind_names[c->kind]);
+                //fprintf(f,"YCAL: Cell (%zu,%zu) of Kind %s; Value=", c->row, c->col, kind_names[c->kind]);
+                charBuffer_snprintf(&buffer,"YCAL: Cell (%zu,%zu) of Kind %s; Value=", c->row, c->col, kind_names[c->kind]);
+
                 // TODO Refactor using free_cell
                 switch (c->kind)
                 {
                     case KIND_NUM:
-                        fprintf(f,"%.2f",c->as.number);
+                        //fprintf(f,"%.2f",c->as.number);
+                        charBuffer_snprintf(&buffer,"%.2f",c->as.number);
                         break;
                     case KIND_TEXT:
-                        fprintf(f, "%s", get_string(&c->as.swText));
+                        //fprintf(f, "%s", get_string(&c->as.swText));
+                        charBuffer_snprintf(&buffer, "%s", get_string(&c->as.swText));
                         break;
                     case KIND_FORMULA:
-                        fprintf(f, "%s", get_string(&c->as.swFormula));
+                        //fprintf(f, "%s", get_string(&c->as.swFormula));
+                        charBuffer_snprintf(&buffer, "%s", get_string(&c->as.swFormula));
+                        break;
+                    case KIND_NODE:
+                        dump_node(&buffer, c->as.node,0);
                         break;
                     default:
                         break;
                 }
-                fprintf(f, "\n");
+                //fprintf(f, "\n");
+                charBuffer_snprintf(&buffer, "%s", "\n");
             }
          }
          else
          {
-             fprintf(f, "no cells\n");
+             //fprintf(f, "YCEL: no cells\n");
+             charBuffer_snprintf(&buffer,"%s","YCEL: no cells\n");
          }
 
      }
      else
      {
-         fprintf(f, "Cell Heap is nil!\n");
+         //fprintf(f, "YCEL: Cell Heap is nil!\n");
+         charBuffer_snprintf(&buffer, "%s", "YCEL: Cell Heap is nil!\n");
      }
+     fprintf(f, "%s", buffer.cs);
  }
+
+TCell *find_cell_in_table(TCellHeap *t, size_t row, size_t col)
+{
+    return NULL; //TODO
+}
 
 void fill_num_cell(TCell *c, size_t row, size_t col, double num)
 {
@@ -111,6 +141,14 @@ void fill_formula_cell(TCell *c, size_t row, size_t col, const TStringView *sw)
     c->as.swFormula = *sw;
 }
 
+void fill_node_cell(TCell *c, size_t row, size_t col, const TNode *nd)
+{
+    c->row = row;
+    c->col = col;
+    c->kind = KIND_NODE;
+    c->as.node = nd;
+}
+
 void fill_empty_cell(TCell *c, size_t row, size_t col, const char *str)
 {
     c->row = row;
@@ -118,7 +156,7 @@ void fill_empty_cell(TCell *c, size_t row, size_t col, const char *str)
     c->kind = KIND_EMPTY;
 }
 
-EResult insert_cell_into_table(TCellHeap *t, size_t row, size_t col, TCell cell)
+EResult append_cell_to_table(TCellHeap *t, size_t row, size_t col, TCell cell)
 {
     assert(t);
     assert(t->cells);
@@ -136,20 +174,43 @@ EResult insert_cell_into_table(TCellHeap *t, size_t row, size_t col, TCell cell)
     return SUCCESS;
 }
 
-EResult insert_num_into_table(TCellHeap *t, size_t row, size_t col, double num) {
+EResult update_cell_into_table(TCellHeap *t, size_t row, size_t col, TCell cell)
+{
+    assert(t);
+    assert(t->cells);
+    TCell *old_cell = find_cell_in_table(t, row, col);
+    if(old_cell)
+    {
+        *old_cell = cell;
+        return SUCCESS;
+    }
+    else
+    {
+        return append_cell_to_table(t, row, col, cell);
+    }
+}
+
+EResult update_num_into_table(TCellHeap *t, size_t row, size_t col, double num) {
     TCell cell; 
     fill_num_cell(&cell, row,col,num);
-    return insert_cell_into_table(t, row, col, cell);
+    return update_cell_into_table(t, row, col, cell);
 }
-EResult insert_text_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw) {
+EResult update_text_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw) {
     TCell cell;
     fill_text_cell(&cell, row,col,sw);
-    return insert_cell_into_table(t, row, col, cell);
+    return update_cell_into_table(t, row, col, cell);
 }
-EResult insert_formula_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw) {
+EResult update_formula_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw) {
     TCell cell; 
     fill_formula_cell(&cell, row,col,sw);
-    return insert_cell_into_table(t, row, col, cell);
+    return update_cell_into_table(t, row, col, cell);
+}
+EResult update_node_into_table(TCellHeap *t, size_t row, size_t col, const TNode *nd)
+{
+    assert(nd);
+    TCell cell; 
+    fill_node_cell(&cell, row,col,nd);
+    return update_cell_into_table(t, row, col, cell);
 }
 
 void table_from_cell_heap(TCell *table, TCellHeap *t)
@@ -187,14 +248,14 @@ void test_string_buffer() {
     NOTHING(size_t, sw3.len);
 
     char *aux = get_string(&sw1);
-    fprintf(stdout, "%s\n", aux);
+    fprintf(stdout, "YCEL: %s\n", aux);
     aux = get_string(&sw2);
-    fprintf(stdout, "%s\n", aux);
+    fprintf(stdout, "YCEL: %s\n", aux);
     aux = get_string(&sw3);
-    fprintf(stdout, "%s\n", get_string(&sw3));
+    fprintf(stdout, "YCEL: %s\n", get_string(&sw3));
 }
 
-int main(int argc, char *argv[])
+int main_no_more(int argc, char *argv[])
 {
    TStringView sw;
    TStringBuffer sb;
@@ -221,20 +282,20 @@ int main(int argc, char *argv[])
             col=0;
             break;
         case TKN_NUM:
-            printf("(%d,%d): %d %s %.2f\n", row, col, tkn, token_names[tkn], num_val);
-            DO(insert_num_into_table(t,row,col, num_val));
+            printf("YCEL: (%d,%d): %d %s %.2f\n", row, col, tkn, token_names[tkn], num_val);
+            DO(update_num_into_table(t,row,col, num_val));
             break;
         case TKN_STRING:
-            printf("(%d,%d): %d %s %s\n", row, col, tkn, token_names[tkn], string_val);
+            printf("YCEL: (%d,%d): %d %s %s\n", row, col, tkn, token_names[tkn], string_val);
             //printf("(%d,%d): %d %s\n", row, col, tkn, string_val);
             sw = append_string_buffer(&sb,string_val);
-            DO(insert_text_into_table(t,row,col, &sw));
+            DO(update_text_into_table(t,row,col, &sw));
             break;
         case TKN_FORMULA:
-            printf("(%d,%d): %d %s %s\n", row, col, tkn, token_names[tkn], string_val);
+            printf("YCEL: (%d,%d): %d %s %s\n", row, col, tkn, token_names[tkn], string_val);
             //printf("(%d,%d): %d %s\n", row, col, tkn, string_val);
             sw = append_string_buffer(&sb,string_val);
-            DO(insert_formula_into_table(t,row,col,&sw));
+            DO(update_formula_into_table(t,row,col,&sw));
             break;
         default:
             break;
@@ -254,4 +315,177 @@ int main(int argc, char *argv[])
 error:
     free_cell_heap(t);
     exit(1);
+}
+
+//char *level_prefix(char buffer[STR_BUF_SIZE], int level)
+//{
+//    char *end_of_buffer = buffer + STR_BUF_SIZE;
+//    char *p = buffer;
+//    for(int i=0; i<=level && p < end_of_buffer; i++)
+//    {
+//        *p++ = '.';
+//    }
+//    return p;
+//}
+void level_prefix(TCharBuffer *buffer, int level)
+{
+    for(int i=0; i<=level && buffer->last < buffer->len; i++)
+    {
+        buffer->cs[buffer->last] = '.';
+        buffer->last++;
+    }
+}
+
+TNode **gather_params(TNode **params, size_t *n, TNode *nd)
+{
+    assert(nd->opr.oper == ';');
+    TNode *param_node;
+    param_node = nd->opr.op[1];
+    if(!params)
+    {
+        params = malloc(sizeof(TNode*));
+        *n = 1;
+    }
+    else
+    {
+        (*n)++;
+        params = realloc(params, ((*n)+1)*sizeof(TNode*));
+    }
+    (params)[*n-1] = nd->opr.op[1];
+    // TAIL Recursion turn it into loop
+    if(nd->opr.op[0]->opr.oper == ';')
+    {
+        return gather_params(params,n, nd->opr.op[0]);
+    }
+    else
+    {
+        param_node = nd->opr.op[0];
+        (*n)++;
+        params = realloc(params, (*n)*sizeof(TNode*));
+        (params)[*n-1] = nd->opr.op[0];
+        return params;
+    }
+}
+
+
+void clearCharBuffer(TCharBuffer *buffer)
+{
+    buffer->len = STR_BUF_SIZE;
+    memset(buffer->cs, '\0', STR_BUF_SIZE);
+    buffer->last = 0;
+}
+
+bool charBufferEmpty(const TCharBuffer *buffer)
+{
+    return buffer->len > buffer->last;
+}
+
+void dump_node(TCharBuffer *buffer, const TNode *nd, const int level)
+{
+   //char buffer[STR_BUF_SIZE]; 
+   //memset(buffer, '\0', STR_BUF_SIZE);
+   //char *p = level_prefix(buffer, level);
+   level_prefix(buffer, level);
+
+   //size_t space_left = (buffer + STR_BUF_SIZE - p);
+   //int res;
+   switch(nd->type)
+   {
+       case TypeNum:
+       {
+          //res = snprintf(p, space_left, "Num=%.2f", nd->num.value); 
+          //assert(res >= 0);
+          charBuffer_snprintf(buffer, "Num=%.2f", nd->num.value);
+       }
+       break;
+       case TypeString:
+       {
+          //res = snprintf(p, space_left, "Str=%s", get_string(&nd->str.value)); 
+          //assert(res >= 0);
+          charBuffer_snprintf(buffer, "Str=%s", get_string(&nd->str.value)); 
+       }
+       break;
+       case TypeRef:
+       {
+          //res = snprintf(p, space_left, "Ref=(%d,%d)", nd->ref.x, nd->ref.y); 
+          //assert(res >= 0);
+          charBuffer_snprintf(buffer, "Ref=(%d,%d)", nd->ref.x, nd->ref.y); 
+       }
+       break;
+       case TypeMinus:
+       case TypeParam:
+       case TypeCompound:
+       {
+          //res = snprintf(p, space_left, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+          //assert(res >= 0);
+          charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+       }
+       break;
+       case TypeSum:
+       {
+          assert(nd->opr.nops == 1);
+          TNode **params = NULL;
+          size_t n = 0;
+          params = gather_params(params, &n, nd->opr.op[0]);
+          //res = snprintf(p, space_left, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+          //assert(res >= 0);
+          charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+          if(charBufferEmpty(buffer))
+          {
+            for(int i = 0; i<n; i++)
+            {
+                //dump_node(params[i],level+1);
+                //p += res;
+                //space_left = (buffer + STR_BUF_SIZE - p);
+                if(charBufferEmpty(buffer))
+                {
+                    //res = snprintf(p, space_left, " %.2f", params[i]->num.value);
+                    charBuffer_snprintf(buffer, " %.2f", params[i]->num.value);
+                }
+            }
+          }
+          free(params);
+       }
+       break;
+   }
+//   printf("%s\n", buffer);
+}
+
+void dump_tree_preorder_internale(TCharBuffer *buffer, TNode *head, int level)
+{
+    dump_node(buffer, head, level);
+    if(head->type == TypeCompound)
+    {
+        for(int i=0; i<head->opr.nops; i++)
+        {
+            dump_tree_preorder_internale(buffer, head->opr.op[i], level+1);
+        }
+    }
+}
+void dump_tree_preorder(TNode *head, FILE *f) 
+{
+    TCharBuffer buffer; 
+    clearCharBuffer(&buffer);
+
+    dump_tree_preorder_internale(&buffer, head, 0);
+    fprintf(f,"%s\n", buffer.cs);
+}
+
+void dump_tree_postorder_internale(TCharBuffer *buffer, TNode *head, int level)
+{
+    if(head->type == TypeCompound)
+    {
+        for(int i=0; i<head->opr.nops; i++)
+        {
+            dump_tree_postorder_internale(buffer, head->opr.op[i], level+1);
+        }
+    }
+    dump_node(buffer, head, level);
+}
+void dump_tree_postorder(TNode *head, FILE *f) 
+{
+    TCharBuffer buffer;
+    clearCharBuffer(&buffer);
+    dump_tree_postorder_internale(&buffer,head, 0);
+    fprintf(f,"%s\n",(&buffer)->cs);
 }

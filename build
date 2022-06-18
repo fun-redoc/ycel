@@ -1,0 +1,15 @@
+rm ycel
+rm lex.yy.c y.tab.c
+rm y.tab.h
+
+# 
+bison -y -d ycel.y
+flex ycel.l
+
+cc ycel.c y.tab.c lex.yy.c string_buffer_view.c -o ycel -ggdb -arch x86_64 -DYYERROR_VERBOSE
+# execute a test
+./ycel test.csv
+    
+#
+#cc -c y.tab.c lex.yy.c -ggdb -arch x86_64
+#cc y.tab.o lex.yy.o ytab.c -o ytab

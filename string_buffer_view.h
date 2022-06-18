@@ -26,7 +26,7 @@ char *substr_dup_at(TStringBuffer *sb, size_t start, size_t len);
 char *string_at(TStringBuffer *sb, size_t start);
 
 
-char *get_string(TStringView *sw);
+char *get_string(const TStringView *sw);
 
 char *dup_substr(TStringView *sw);
 
