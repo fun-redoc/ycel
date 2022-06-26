@@ -13,7 +13,7 @@
 typedef struct {
     size_t len; 
     size_t last;
-    char   cs[STR_BUF_SIZE];
+    char   cs[9*STR_BUF_SIZE];
 } TCharBuffer;
 void clearCharBuffer(TCharBuffer *buffer);
 
@@ -55,6 +55,13 @@ typedef struct nodeType {
     };
 } TNode;
 
+typedef enum {ParamList, ParamRange} TParamType;
+typedef struct 
+{
+    TParamType paramType;
+    TNode **params;
+} TParams;
+
 
 typedef enum {
     SUCCESS,
@@ -86,7 +93,9 @@ typedef union {
     const TNode *node;
 } UCell;
 
+typedef enum { not_yet, proceeding, ready } ECellEvalSstatus;
 typedef struct {
+    ECellEvalSstatus evalStatus;
     size_t row;
     size_t col;
     EKindOfCell kind;
@@ -118,6 +127,7 @@ EResult update_text_into_table(TCellHeap *t, size_t row, size_t col, const TStri
 EResult update_node_into_table(TCellHeap *t, size_t row, size_t col, const TNode *nd);
 EResult update_formula_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw);
 TCell *find_cell_in_table(TCellHeap *t, size_t row, size_t col);
+void calc(TCellHeap *t);
 
 void dump_tree_preorder(TNode *head, FILE *f);
 void dump_tree_postorder(TNode *head, FILE *f);

@@ -5,4 +5,4 @@ Year,Make,Model,Description,Price
 1999,Chevy,"Venture ""Extended Edition, No Price""",,
 1996,Jeep,Grand Cherokee,"MUST SELL!
 air, moon roof, loaded",4799.00
-,Total,,=sum(E2;(5,3);(5,4);(5,5))
+,Total,,=sum(E5;0)

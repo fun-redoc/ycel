@@ -28,7 +28,7 @@ TStringView append_string_buffer(TStringBuffer *sb, const char *str)
     size_t start = sb->last;
     if(sb->last + len >= sb->max)
     {
-        sb->max = sb->max * 2 + 1 ;
+        sb->max = (sb->last + len) * 2 + 1 ;
         sb->buffer = realloc(sb->buffer, sizeof(char)*(sb->max));
         if(!sb->buffer) goto error;
     }

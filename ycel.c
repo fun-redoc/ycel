@@ -31,6 +31,7 @@ double num_val;
 
 // prototypes
 void dump_node(TCharBuffer *buffer, const TNode *nd, const int level);
+void calc_cell(TCellHeap *t, TCell *c);
 
 TCellHeap *init_cell_heap() {
     TCellHeap *t = malloc(sizeof(TCellHeap));
@@ -58,6 +59,7 @@ error:
  }
 
  void dump_cell_heap(FILE *f, TCellHeap *t) {
+    printf("in dump cell heap\n");
      TCharBuffer buffer;
      clearCharBuffer(&buffer);
      if(t) {
@@ -114,7 +116,17 @@ error:
 
 TCell *find_cell_in_table(TCellHeap *t, size_t row, size_t col)
 {
-    return NULL; //TODO
+    assert(t);
+    for(int i=0; i<t->last; i++)
+    {
+        TCell *c = &(t->cells[i]);
+        assert(c);
+        if(c->row == row && c->col == col)
+        {
+            return c;
+        }
+    }
+    return NULL;
 }
 
 void fill_num_cell(TCell *c, size_t row, size_t col, double num)
@@ -336,9 +348,9 @@ void level_prefix(TCharBuffer *buffer, int level)
     }
 }
 
-TNode **gather_params(TNode **params, size_t *n, TNode *nd)
+TNode **gather_params_list(TNode **params, size_t *n, TNode *nd, const char sep)
 {
-    assert(nd->opr.oper == ';');
+    assert(nd->opr.oper == sep);
     TNode *param_node;
     param_node = nd->opr.op[1];
     if(!params)
@@ -353,9 +365,9 @@ TNode **gather_params(TNode **params, size_t *n, TNode *nd)
     }
     (params)[*n-1] = nd->opr.op[1];
     // TAIL Recursion turn it into loop
-    if(nd->opr.op[0]->opr.oper == ';')
+    if(nd->opr.op[0]->opr.oper == sep)
     {
-        return gather_params(params,n, nd->opr.op[0]);
+        return gather_params_list(params,n, nd->opr.op[0], sep);
     }
     else
     {
@@ -367,11 +379,18 @@ TNode **gather_params(TNode **params, size_t *n, TNode *nd)
     }
 }
 
+TNode **gather_params(TNode **params, size_t *n, TNode *nd)
+{
+    assert(nd->opr.oper == ';' || nd->opr.oper == ':');
+    return gather_params_list(params, n, nd, nd->opr.oper);
+}
+
 
 void clearCharBuffer(TCharBuffer *buffer)
 {
-    buffer->len = STR_BUF_SIZE;
-    memset(buffer->cs, '\0', STR_BUF_SIZE);
+    assert(buffer);
+    buffer->len = sizeof(buffer->cs)/sizeof(char);
+    memset(buffer->cs, '\0', buffer->len);
     buffer->last = 0;
 }
 
@@ -440,7 +459,8 @@ void dump_node(TCharBuffer *buffer, const TNode *nd, const int level)
                 if(charBufferEmpty(buffer))
                 {
                     //res = snprintf(p, space_left, " %.2f", params[i]->num.value);
-                    charBuffer_snprintf(buffer, " %.2f", params[i]->num.value);
+                    //charBuffer_snprintf(buffer, " %.2f", params[i]->num.value);
+                    dump_node(buffer, params[i],0);
                 }
             }
           }
@@ -488,4 +508,97 @@ void dump_tree_postorder(TNode *head, FILE *f)
     clearCharBuffer(&buffer);
     dump_tree_postorder_internale(&buffer,head, 0);
     fprintf(f,"%s\n",(&buffer)->cs);
+}
+double calc_node(TCellHeap *t, const TNode *nd)
+{
+    assert(nd);
+    switch(nd->type)
+    {
+        case TypeNum:
+        {
+            return nd->num.value;
+        }
+        break;
+        case TypeString:
+        {
+            assert(NULL &&"Type Error, string is not expected here.");
+        }
+        break;
+        case TypeRef:
+        {
+            TCell *c = find_cell_in_table(t, nd->ref.y-1, nd->ref.x-1);
+            assert(c && "Referenced cell not found.");
+            calc_cell(t, c);
+            assert(c->kind == TypeNum);
+            return c->as.number;
+        }
+        break;
+        case TypeMinus:
+        case TypeParam:
+        case TypeCompound:
+        {
+            assert(NULL && "not yet implemented");
+        }
+        break;
+        case TypeSum:
+        {
+            assert(nd->opr.nops == 1);
+            TNode **params = NULL;
+            size_t n = 0;
+            params = gather_params(params, &n, nd->opr.op[0]);
+            double res = 0;
+            for(int i = 0; i<n; i++)
+            {
+                res +=calc_node(t, params[i]);
+            }
+            free(params);
+            return res;
+        }
+        break;
+    }
+}
+
+void calc_cell(TCellHeap *t, TCell *c)
+{
+    assert(((c->evalStatus == not_yet) || (c->evalStatus == ready)) && "there is a circular reference.");
+    c->evalStatus = proceeding;
+    switch (c->kind)
+    {
+        case KIND_EMPTY:
+        case KIND_NUM:
+        case KIND_TEXT:
+            c->evalStatus = ready;
+        break;
+        case KIND_FORMULA: assert(NULL && "obsolete"); break;
+        case KIND_NODE:
+        {
+            const TNode *nd = c->as.node;
+            double res = calc_node(t, nd);
+            c->as.number = res;
+            c->kind = KIND_NUM;
+            c->evalStatus = ready;
+        }
+        break;
+    }   
+}
+void calc_cell_by_idx(TCellHeap *t, size_t i)
+{
+    assert(t);
+    assert(t->cells);
+    calc_cell(t, &(t->cells[i]));
+}
+
+void calc(TCellHeap *t)
+{
+    assert(t);
+    // initialize loop detection 
+    for(int i=0; i<t->last; i++)
+    {
+        t->cells[i].evalStatus = not_yet;
+    }
+    // calculate 
+    for(int i=0; i<t->last; i++)
+    {
+        calc_cell_by_idx(t, i);
+    }
 }
