@@ -4,4 +4,4 @@ A, B,     "sum complete column"
 3,2
 4,2
 5,2
-=sum(A2:A6),=sum(A2;A3;A4;A5;A6)
+=sum(A2:B6),=sum(sum(A2;A3;A4;A5;A6);sum(B2:B6))
