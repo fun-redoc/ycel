@@ -25,6 +25,7 @@ TNode *mk_node    (TRef coord, int oper, const char *oper_name, ENodeType t, int
 TNode *mk_node_ref(TRef coord, TRef r);
 TNode *mk_node_num(TRef coord, double v);
 TNode *mk_node_str(TRef coord, TStringView v);
+void check_type(TNode *n, ENodeType t);
 void free_node(TNode *p);
 TValNum exec_node(TNode *p);
 int yylex(void);
@@ -84,7 +85,7 @@ stmt:
 expr_list:
       expr                   {$$=$1;}
     | expr_list ';' expr     {$$=mk_node((TRef){row_num, col_num},';', ";", TypeParam, 2, $1,$3);}
-    | expr ':' expr          {$$=mk_node((TRef){row_num, col_num},':', ":", TypeParam, 2, $1,$3);}
+    | expr ':' expr          {check_type($1, TypeRef); check_type($3, TypeRef); $$=mk_node((TRef){row_num, col_num},':', ":", TypeParam, 2, $1,$3);}
 
 expr:
     stmt                    {$$=$1;}
@@ -273,4 +274,12 @@ int main(void) {
     cleanup();
     free_node(root_of_ast);
     return 0;
+}
+
+
+void check_type(TNode *n, ENodeType t){
+    if(n->type != t)
+    {
+        yyerror("Reference expected here.\n");
+    }
 }

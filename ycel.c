@@ -63,30 +63,24 @@ error:
      TCharBuffer buffer;
      clearCharBuffer(&buffer);
      if(t) {
-         //fprintf(f,"YCEL: Dump Cell Heap\n");
          charBuffer_snprintf(&buffer, "%s","YCEL: Dump Cell Heap\n");
-         //fprintf(f,"YCEL: max=%zu, last=%zu, rows=%zu, cols=%zu\n", t->max, t->last, t->rows, t->cols);
          charBuffer_snprintf(&buffer,"YCEL: max=%zu, last=%zu, rows=%zu, cols=%zu\n", t->max, t->last, t->rows, t->cols);
 
          if(t->cells){
             for(int i=0; i<t->last;i++) {
                 TCell *c = &(t->cells[i]);
-                //fprintf(f,"YCAL: Cell (%zu,%zu) of Kind %s; Value=", c->row, c->col, kind_names[c->kind]);
                 charBuffer_snprintf(&buffer,"YCAL: Cell (%zu,%zu) of Kind %s; Value=", c->row, c->col, kind_names[c->kind]);
 
                 // TODO Refactor using free_cell
                 switch (c->kind)
                 {
                     case KIND_NUM:
-                        //fprintf(f,"%.2f",c->as.number);
                         charBuffer_snprintf(&buffer,"%.2f",c->as.number);
                         break;
                     case KIND_TEXT:
-                        //fprintf(f, "%s", get_string(&c->as.swText));
                         charBuffer_snprintf(&buffer, "%s", get_string(&c->as.swText));
                         break;
                     case KIND_FORMULA:
-                        //fprintf(f, "%s", get_string(&c->as.swFormula));
                         charBuffer_snprintf(&buffer, "%s", get_string(&c->as.swFormula));
                         break;
                     case KIND_NODE:
@@ -95,20 +89,17 @@ error:
                     default:
                         break;
                 }
-                //fprintf(f, "\n");
                 charBuffer_snprintf(&buffer, "%s", "\n");
             }
          }
          else
          {
-             //fprintf(f, "YCEL: no cells\n");
              charBuffer_snprintf(&buffer,"%s","YCEL: no cells\n");
          }
 
      }
      else
      {
-         //fprintf(f, "YCEL: Cell Heap is nil!\n");
          charBuffer_snprintf(&buffer, "%s", "YCEL: Cell Heap is nil!\n");
      }
      fprintf(f, "%s", buffer.cs);
@@ -329,16 +320,6 @@ error:
     exit(1);
 }
 
-//char *level_prefix(char buffer[STR_BUF_SIZE], int level)
-//{
-//    char *end_of_buffer = buffer + STR_BUF_SIZE;
-//    char *p = buffer;
-//    for(int i=0; i<=level && p < end_of_buffer; i++)
-//    {
-//        *p++ = '.';
-//    }
-//    return p;
-//}
 void level_prefix(TCharBuffer *buffer, int level)
 {
     for(int i=0; i<=level && buffer->last < buffer->len; i++)
@@ -348,43 +329,92 @@ void level_prefix(TCharBuffer *buffer, int level)
     }
 }
 
-TNode **gather_params_list(TNode **params, size_t *n, TNode *nd, const char sep)
+TNode *gather_params2(TNode *params, size_t *n, TNode *nd)
 {
-    assert(nd->opr.oper == sep);
-    TNode *param_node;
-    param_node = nd->opr.op[1];
-    if(!params)
+    assert(nd->opr.oper == ';' || nd->opr.oper == ':');
+    char sep = nd->opr.oper;
+    
+    // make place for at least o new param
+
+    if(sep == ':') 
     {
-        params = malloc(sizeof(TNode*));
-        *n = 1;
-    }
-    else
+
+        TNode *head = nd->opr.op[0];
+        TNode *tail = nd->opr.op[1];
+        assert(head->type == TypeRef && tail->type == TypeRef); // only defined for references
+        int from_x, from_y, to_x, to_y;
+        if(head->ref.x < tail->ref.x)
+        {
+            from_x = head->ref.x;
+            to_x = tail->ref.x;
+        }
+        else
+        {
+            to_x = head->ref.x;
+            from_x = tail->ref.x;
+        }
+        if(head->ref.y < tail->ref.y)
+        {
+            from_y = head->ref.y;
+            to_y = tail->ref.y;
+        }
+        else
+        {
+            to_y = tail->ref.y;
+            from_y = head->ref.y;
+        }
+        
+        for(int x=from_x; x<=to_x; x++)
+        {
+            for(int y=from_y; y<=to_y; y++)
+            {
+                if(!params)
+                {
+                    params = malloc(sizeof(TNode));
+                    *n = 1;
+                }
+                else
+                {
+                    (*n)++;
+                    params = realloc(params, ((*n)+1)*sizeof(TNode));
+                }
+                params[*n-1] = (TNode){head->coord, TypeRef, .ref=((TRef){x,y})};
+            }
+        }
+        return params; 
+
+    } else if(sep ==';')
     {
-        (*n)++;
-        params = realloc(params, ((*n)+1)*sizeof(TNode*));
-    }
-    (params)[*n-1] = nd->opr.op[1];
-    // TAIL Recursion turn it into loop
-    if(nd->opr.op[0]->opr.oper == sep)
+        if(!params)
+        {
+            params = malloc(sizeof(TNode));
+            *n = 1;
+        }
+        else
+        {
+            (*n)++;
+            params = realloc(params, ((*n)+1)*sizeof(TNode));
+        }
+        // TODO: expression list grows to the left, tail to head (look expr_list rule), TODO turn it the other way round
+        memcpy(&(params[*n-1]), nd->opr.op[1], sizeof(TNode));
+        // TAIL Recursion turn it into loop
+        if(nd->opr.op[0]->opr.oper == sep)
+        {
+            return gather_params2(params,n, nd->opr.op[0]);
+        }
+        else
+        {
+            (*n)++;
+            params = realloc(params, (*n)*sizeof(TNode));
+            memcpy(&(params[*n-1]), nd->opr.op[0], sizeof(TNode));
+            return params;
+        }
+    } else
     {
-        return gather_params_list(params,n, nd->opr.op[0], sep);
-    }
-    else
-    {
-        param_node = nd->opr.op[0];
-        (*n)++;
-        params = realloc(params, (*n)*sizeof(TNode*));
-        (params)[*n-1] = nd->opr.op[0];
+        assert(false && "unknown separator.");
         return params;
     }
 }
-
-TNode **gather_params(TNode **params, size_t *n, TNode *nd)
-{
-    assert(nd->opr.oper == ';' || nd->opr.oper == ':');
-    return gather_params_list(params, n, nd, nd->opr.oper);
-}
-
 
 void clearCharBuffer(TCharBuffer *buffer)
 {
@@ -401,33 +431,22 @@ bool charBufferEmpty(const TCharBuffer *buffer)
 
 void dump_node(TCharBuffer *buffer, const TNode *nd, const int level)
 {
-   //char buffer[STR_BUF_SIZE]; 
-   //memset(buffer, '\0', STR_BUF_SIZE);
-   //char *p = level_prefix(buffer, level);
    level_prefix(buffer, level);
 
-   //size_t space_left = (buffer + STR_BUF_SIZE - p);
-   //int res;
    switch(nd->type)
    {
        case TypeNum:
        {
-          //res = snprintf(p, space_left, "Num=%.2f", nd->num.value); 
-          //assert(res >= 0);
           charBuffer_snprintf(buffer, "Num=%.2f", nd->num.value);
        }
        break;
        case TypeString:
        {
-          //res = snprintf(p, space_left, "Str=%s", get_string(&nd->str.value)); 
-          //assert(res >= 0);
           charBuffer_snprintf(buffer, "Str=%s", get_string(&nd->str.value)); 
        }
        break;
        case TypeRef:
        {
-          //res = snprintf(p, space_left, "Ref=(%d,%d)", nd->ref.x, nd->ref.y); 
-          //assert(res >= 0);
           charBuffer_snprintf(buffer, "Ref=(%d,%d)", nd->ref.x, nd->ref.y); 
        }
        break;
@@ -435,32 +454,23 @@ void dump_node(TCharBuffer *buffer, const TNode *nd, const int level)
        case TypeParam:
        case TypeCompound:
        {
-          //res = snprintf(p, space_left, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
-          //assert(res >= 0);
           charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
        }
        break;
        case TypeSum:
        {
           assert(nd->opr.nops == 1);
-          TNode **params = NULL;
+          TNode *params = NULL;
           size_t n = 0;
-          params = gather_params(params, &n, nd->opr.op[0]);
-          //res = snprintf(p, space_left, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
-          //assert(res >= 0);
+          params = gather_params2(params, &n, nd->opr.op[0]);
           charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
           if(charBufferEmpty(buffer))
           {
             for(int i = 0; i<n; i++)
             {
-                //dump_node(params[i],level+1);
-                //p += res;
-                //space_left = (buffer + STR_BUF_SIZE - p);
                 if(charBufferEmpty(buffer))
                 {
-                    //res = snprintf(p, space_left, " %.2f", params[i]->num.value);
-                    //charBuffer_snprintf(buffer, " %.2f", params[i]->num.value);
-                    dump_node(buffer, params[i],0);
+                    dump_node(buffer, &params[i],0);
                 }
             }
           }
@@ -468,7 +478,6 @@ void dump_node(TCharBuffer *buffer, const TNode *nd, const int level)
        }
        break;
    }
-//   printf("%s\n", buffer);
 }
 
 void dump_tree_preorder_internale(TCharBuffer *buffer, TNode *head, int level)
@@ -543,13 +552,13 @@ double calc_node(TCellHeap *t, const TNode *nd)
         case TypeSum:
         {
             assert(nd->opr.nops == 1);
-            TNode **params = NULL;
+            TNode* params = NULL;
             size_t n = 0;
-            params = gather_params(params, &n, nd->opr.op[0]);
+            params = gather_params2(params, &n, nd->opr.op[0]);
             double res = 0;
             for(int i = 0; i<n; i++)
             {
-                res +=calc_node(t, params[i]);
+                res +=calc_node(t, &params[i]);
             }
             free(params);
             return res;

@@ -130,6 +130,7 @@ TNode *mk_node    (TRef coord, int oper, const char *oper_name, ENodeType t, int
 TNode *mk_node_ref(TRef coord, TRef r);
 TNode *mk_node_num(TRef coord, double v);
 TNode *mk_node_str(TRef coord, TStringView v);
+void check_type(TNode *n, ENodeType t);
 void free_node(TNode *p);
 TValNum exec_node(TNode *p);
 int yylex(void);
@@ -163,7 +164,7 @@ extern FILE* yyin;
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 41 "ycel.y"
+#line 42 "ycel.y"
 {
     double valNum;     
     TStringView valStr;
@@ -171,7 +172,7 @@ typedef union YYSTYPE
     TNode *nPtr;       
 }
 /* Line 193 of yacc.c.  */
-#line 175 "y.tab.c"
+#line 176 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -184,7 +185,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 188 "y.tab.c"
+#line 189 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -474,9 +475,9 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    61,    61,    63,    64,    66,    70,    71,    72,    75,
-      76,    77,    78,    79,    82,    85,    86,    87,    90,    91,
-      92,    93,    94
+       0,    62,    62,    64,    65,    67,    71,    72,    73,    76,
+      77,    78,    79,    80,    83,    86,    87,    88,    91,    92,
+      93,    94,    95
 };
 #endif
 
@@ -1396,108 +1397,108 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 61 "ycel.y"
+#line 62 "ycel.y"
     {printf("before root assign\n");(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);root_of_ast = (yyvsp[(1) - (1)].nPtr); printf("ROOT\n");}
     break;
 
   case 4:
-#line 64 "ycel.y"
+#line 65 "ycel.y"
     {printf("hier 5.3\n");(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(LINE_END),TypeCompound, 2, (yyvsp[(1) - (3)].nPtr) , (yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 5:
-#line 66 "ycel.y"
+#line 67 "ycel.y"
     {printf("hier 5.1\n"); (yyval.nPtr)=(yyvsp[(1) - (1)].nPtr); }
     break;
 
   case 6:
-#line 70 "ycel.y"
+#line 71 "ycel.y"
     {printf("hier 4.1\n");  (yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(CELL_END), TypeCompound, 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 7:
-#line 71 "ycel.y"
+#line 72 "ycel.y"
     {printf("hier 4.2\n");  (yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 8:
-#line 72 "ycel.y"
+#line 73 "ycel.y"
     {printf("hier 4.3\n"); (yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeCompound, 0); }
     break;
 
   case 9:
-#line 75 "ycel.y"
+#line 76 "ycel.y"
     {(yyval.nPtr)=mk_node_num((TRef){row_num, col_num},(yyvsp[(1) - (1)].valNum));DO(update_num_into_table(ch, row_num, col_num, (yyvsp[(1) - (1)].valNum)));}
     break;
 
   case 10:
-#line 76 "ycel.y"
+#line 77 "ycel.y"
     {printf("hier 1\n");(yyval.nPtr)=mk_node_str((TRef){row_num, col_num},(yyvsp[(1) - (1)].valStr));printf("hier 2\n");DO(update_text_into_table(ch, row_num, col_num, &(yyvsp[(1) - (1)].valStr))); printf("hier 3\n");}
     break;
 
   case 11:
-#line 77 "ycel.y"
+#line 78 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(2) - (2)].nPtr);}
     break;
 
   case 12:
-#line 78 "ycel.y"
+#line 79 "ycel.y"
     {printf("hier empty\n");(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0);}
     break;
 
   case 13:
-#line 79 "ycel.y"
+#line 80 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0);}
     break;
 
   case 14:
-#line 82 "ycel.y"
+#line 83 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(SUM), TypeSum,1,(yyvsp[(3) - (4)].nPtr));DO(update_node_into_table(ch, row_num, col_num, (yyval.nPtr)));}
     break;
 
   case 15:
-#line 85 "ycel.y"
+#line 86 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 16:
-#line 86 "ycel.y"
+#line 87 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},';', ";", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 17:
-#line 87 "ycel.y"
-    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},':', ":", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
+#line 88 "ycel.y"
+    {check_type((yyvsp[(1) - (3)].nPtr), TypeRef); check_type((yyvsp[(3) - (3)].nPtr), TypeRef); (yyval.nPtr)=mk_node((TRef){row_num, col_num},':', ":", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 18:
-#line 90 "ycel.y"
+#line 91 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 19:
-#line 91 "ycel.y"
+#line 92 "ycel.y"
     {(yyval.nPtr)=mk_node_num((TRef){row_num, col_num},(yyvsp[(1) - (1)].valNum));}
     break;
 
   case 20:
-#line 92 "ycel.y"
+#line 93 "ycel.y"
     {(yyval.nPtr)=mk_node_ref((TRef){row_num, col_num},(yyvsp[(1) - (1)].ref));}
     break;
 
   case 21:
-#line 93 "ycel.y"
+#line 94 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(UMINUS), TypeMinus, 1, (yyvsp[(2) - (2)].nPtr));}
     break;
 
   case 22:
-#line 94 "ycel.y"
+#line 95 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(2) - (3)].nPtr);}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1501 "y.tab.c"
+#line 1502 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1711,7 +1712,7 @@ yyreturn:
 }
 
 
-#line 96 "ycel.y"
+#line 97 "ycel.y"
 
 
 TNode *mk_node_num(TRef coord, double value) {
@@ -1892,4 +1893,12 @@ int main(void) {
     cleanup();
     free_node(root_of_ast);
     return 0;
+}
+
+
+void check_type(TNode *n, ENodeType t){
+    if(n->type != t)
+    {
+        yyerror("Reference expected here.\n");
+    }
 }

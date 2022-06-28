@@ -55,12 +55,12 @@ typedef struct nodeType {
     };
 } TNode;
 
-typedef enum {ParamList, ParamRange} TParamType;
-typedef struct 
-{
-    TParamType paramType;
-    TNode **params;
-} TParams;
+//typedef enum {ParamList, ParamRange} TParamType;
+//typedef struct 
+//{
+//    TParamType paramType;
+//    TNode **params;
+//} TParams;
 
 
 typedef enum {
