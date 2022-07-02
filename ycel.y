@@ -49,7 +49,7 @@ extern FILE* yyin;
 %token <valNum> NUMBER
 %token <valStr> STRING
 %token <ref> REFERENCE
-%token FORMULA SUM PROD IF EMPTY LINE_END CELL_END FILE_END
+%token FORMULA MUL SUM IF EMPTY LINE_END CELL_END FILE_END
 %nonassoc IFX
 %nonassoc ELSE
 %left '-'
@@ -59,28 +59,29 @@ extern FILE* yyin;
 
 %%
 ycel:
-            rows              {printf("before root assign\n");$$=$1;root_of_ast = $1; printf("ROOT\n");} 
+            rows              {$$=$1;root_of_ast = $1;} 
 
 rows:
-        | cells LINE_END rows {printf("hier 5.3\n");$$=mk_node((TRef){row_num, col_num},OPR(LINE_END),TypeCompound, 2, $1 , $3);}
-/*        | cells LINE_END      {printf("hier 5.2\n"); $$=$1; } */
-        | cells               {printf("hier 5.1\n"); $$=$1; } 
-/*        |  NULL           {printf("hier 5.4\n"); $$=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0); } */
+        | cells LINE_END rows {$$=mk_node((TRef){row_num, col_num},OPR(LINE_END),TypeCompound, 2, $1 , $3);}
+/*        | cells LINE_END    {$$=$1;} */
+        | cells               {$$=$1;} 
+/*        |  NULL             {$$=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0); } */
 
 cells:
-          cell CELL_END cells {printf("hier 4.1\n");  $$=mk_node((TRef){row_num, col_num},OPR(CELL_END), TypeCompound, 2, $1, $3);}
-        | cell                {printf("hier 4.2\n");  $$=$1;}
-        |  /*NULL*/           {printf("hier 4.3\n"); $$=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeCompound, 0); }
+          cell CELL_END cells {$$=mk_node((TRef){row_num, col_num},OPR(CELL_END), TypeCompound, 2, $1, $3);}
+        | cell                {$$=$1;}
+        |  /*NULL*/           {$$=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeCompound, 0); }
 
 cell:
           NUMBER              {$$=mk_node_num((TRef){row_num, col_num},$1);DO(update_num_into_table(ch, row_num, col_num, $1));}
-        | STRING              {printf("hier 1\n");$$=mk_node_str((TRef){row_num, col_num},$1);printf("hier 2\n");DO(update_text_into_table(ch, row_num, col_num, &$1)); printf("hier 3\n");}
+        | STRING              {$$=mk_node_str((TRef){row_num, col_num},$1);DO(update_text_into_table(ch, row_num, col_num, &$1));}
         | FORMULA stmt        {$$=$2;} 
-        | EMPTY               {printf("hier empty\n");$$=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0);}
+        | EMPTY               {$$=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0);}
         |  /*NULL*/           {$$=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0);} 
 
 stmt:
-    SUM '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(SUM), TypeSum,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
+      SUM '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(SUM), TypeSum,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
+    | MUL '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(MUL), TypeMul,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
 
 expr_list:
       expr                   {$$=$1;}
@@ -174,62 +175,62 @@ void free_node(TNode *p) {
     free (p);
 }
 
-TValNum exec_node(TNode *nPtr)
-{
-    assert(nPtr);
-    switch(nPtr->type)
-    {
-        case TypeRef:
-            assert("not yet implemented" && '\0');
-            break;
-        case TypeNum:
-            return nPtr->num;
-            break;
-        case TypeString:
-            break;
-        case TypeParam:
-        case TypeMinus:
-        case TypeCompound:
-        case TypeSum:
-            switch(nPtr->opr.oper)
-            {
-                case SUM:
-                {
-                    TValNum res = {0.0};
-                    res.value = 0.0;
-                    for(int i=0; i<nPtr->opr.nops; i++)
-                    {
-                        TValNum op_res = exec_node(nPtr->opr.op[i]);
-                        printf("op_res = %.2f\n", op_res.value);
-                        res.value += op_res.value;
-                    }
-                    printf("res = %.2f\n", res.value);
-                    return res;
-                }
-                break;
-                case ';':
-                {
-                    TValNum left = exec_node(nPtr->opr.op[0]);
-
-
-                }
-                break;
-                default:
-                {
-                    TValNum res;
-                    for(int i=0; i<nPtr->opr.nops; i++)
-                    {
-                        res = exec_node(nPtr->opr.op[i]);
-                    }
-                    return res;
-                    break;
-                }
-
-            }
-            break;
-    }
-    return (TValNum){0};
-}
+//TValNum exec_node(TNode *nPtr)
+//{
+//    assert(nPtr);
+//    switch(nPtr->type)
+//    {
+//        case TypeRef:
+//            assert("not yet implemented" && '\0');
+//            break;
+//        case TypeNum:
+//            return nPtr->num;
+//            break;
+//        case TypeString:
+//            break;
+//        case TypeParam:
+//        case TypeMinus:
+//        case TypeCompound:
+//        case TypeSum:
+//            switch(nPtr->opr.oper)
+//            {
+//                case SUM:
+//                {
+//                    TValNum res = {0.0};
+//                    res.value = 0.0;
+//                    for(int i=0; i<nPtr->opr.nops; i++)
+//                    {
+//                        TValNum op_res = exec_node(nPtr->opr.op[i]);
+//                        printf("op_res = %.2f\n", op_res.value);
+//                        res.value += op_res.value;
+//                    }
+//                    printf("res = %.2f\n", res.value);
+//                    return res;
+//                }
+//                break;
+//                case ';':
+//                {
+//                    TValNum left = exec_node(nPtr->opr.op[0]);
+//
+//
+//                }
+//                break;
+//                default:
+//                {
+//                    TValNum res;
+//                    for(int i=0; i<nPtr->opr.nops; i++)
+//                    {
+//                        res = exec_node(nPtr->opr.op[i]);
+//                    }
+//                    return res;
+//                    break;
+//                }
+//
+//            }
+//            break;
+//    }
+//    return (TValNum){0};
+//}
 
 void mk_error(char *s, int line, char* file)
 {

@@ -78,7 +78,7 @@ error:
                         charBuffer_snprintf(&buffer,"%.2f",c->as.number);
                         break;
                     case KIND_TEXT:
-                        charBuffer_snprintf(&buffer, "%s", get_string(&c->as.swText));
+                        charBuffer_snprintf(&buffer, "|%s|", get_string(&c->as.swText));
                         break;
                     case KIND_FORMULA:
                         charBuffer_snprintf(&buffer, "%s", get_string(&c->as.swFormula));
@@ -457,6 +457,7 @@ void dump_node(TCharBuffer *buffer, const TNode *nd, const int level)
           charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
        }
        break;
+       case TypeMul:
        case TypeSum:
        {
           assert(nd->opr.nops == 1);
@@ -559,6 +560,21 @@ double calc_node(TCellHeap *t, const TNode *nd)
             for(int i = 0; i<n; i++)
             {
                 res +=calc_node(t, &params[i]);
+            }
+            free(params);
+            return res;
+        }
+        break;
+        case TypeMul:
+        {
+            assert(nd->opr.nops == 1);
+            TNode* params = NULL;
+            size_t n = 0;
+            params = gather_params2(params, &n, nd->opr.op[0]);
+            double res = 1;
+            for(int i = 0; i<n; i++)
+            {
+                res *=calc_node(t, &params[i]);
             }
             free(params);
             return res;

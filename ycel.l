@@ -22,6 +22,9 @@
 %x fml 
 
 %%
+[ \t]+       ;  /* ignore whitespace */
+<fml>[ \t]+  ;  /* ignore whitespace */
+
 = {
     //TStringView sw = append_string_buffer(&sb,yytext);
     //DO(insert_text_into_table(t,row,col, &sw));
@@ -36,12 +39,11 @@
     return NUMBER;
 }
 
-[ \t]*\"([^"]|\"\")*\" {
+\"([^"]|\"\")*\" {
 /* -- STRING with quotes -- */
-    printf("BEGIN: YYCEL wq: row=%d col=%d TEXT=%s\n", row_num, col_num, yytext);
 	/* yyleng is precomputed strlen(yytext) */
     size_t n_spaces = 0;
-    while(yytext[n_spaces]!='"') n_spaces++;
+    //while(yytext[n_spaces]!='"') n_spaces++;
     size_t i=0, n = yyleng-n_spaces;
     char s[n];
     char *sp;
@@ -62,26 +64,33 @@
             i++; /* skip second one */
     }
     TStringView sw = append_string_buffer(&sb,s);
-    //DO(insert_text_into_table(t,row,col, &sw));
     yylval.valStr = sw;
-    printf("END: YYCEL wq: row=%d col=%d TEXT=%s\n", row_num, col_num, get_string(&sw));
     return STRING;
 }
 
 
-[ \t]*[^=",\r\n][^",\r\n]* { 
+[^=",\r\n \t]+[^",\r\n]* { 
 /* -- STRING w/o quotes -- */
-    printf("BEGIN: YYCEL woq: row=%d col=%d TEXT=|%s|\n", row_num, col_num, yytext);
-    TStringView sw = append_string_buffer(&sb,yytext);
-    //DO(insert_text_into_table(t,row,col, &sw));
-    yylval.valStr = sw;
-    printf("END: YYCEL woq: row=%d col=%d TEXT=|%s|\n", row_num, col_num, get_string(&sw));
-    return STRING;
+    double d = -1;
+    int r = sscanf(yytext, "%lf", &d);
+    //printf("scanfres %d %lf\n", r, d);
+    // scan rules are ambiguous, distinguish NUM here
+    // TODO find better idea using lex rules if possible
+    if(r)
+    {
+        yylval.valNum = d;
+        return NUMBER;
+    }
+    else
+    {
+        TStringView sw = append_string_buffer(&sb,yytext);
+        yylval.valStr = sw;
+        return STRING;
+    }
 }
 
 \n|\r\n   { 
 /* -- Line End -- */
-    printf("-6-->YCEL: row=%d col=%d\n",row_num,col_num);
     row_num++;
     col_num = 0;
     BEGIN INITIAL;
@@ -90,16 +99,19 @@
 
 \, { 
 /* -- Cell End -- */
-    printf("-5-->YCEL: row=%d col=%d\n",row_num,col_num);
     col_num++;
     BEGIN INITIAL;
     return CELL_END; 
 }
 
 <fml>"sum" {
-    printf("YCEL: row=%d col=%d : sum\n", row_num, col_num);
     return SUM; 
 }
+
+<fml>"mul" {
+    return MUL; 
+}
+
 <fml>[:();-] {
     return *yytext;
 }
@@ -131,7 +143,6 @@
     free(tofree);
     TRef ref = {x,y};
     yylval.ref = ref;
-    printf("-1-->YCEL: row=%d col=%d %s ref=(%d,%d)\n",row_num, col_num, yytext, x,y);
     return REFERENCE;
 }
 
@@ -147,34 +158,29 @@
     TRef ref = {x,y};
     yylval.ref = ref;
     free(tofree);
-    printf("-2-->YCEL: row=%d col=%d %s ref=(%d,%d)\n", row_num, col_num, yytext, x,y);
     return REFERENCE;
 }
 
 <fml>\n|\r\n { 
 /* -- Line End -- */
-    printf("-3-->YCEL: row=%d col=%d\n", row_num, col_num);
     row_num++;
     col_num = 0;
     BEGIN INITIAL;
     return LINE_END; 
 }
 
-
 <fml>\, { 
 /* -- Cell End -- */
-    printf("-4-->YCEL: row=%d col=%d\n",row_num,col_num);
     col_num++;
     BEGIN INITIAL;
     return CELL_END; 
 }
 
-.   {
-    printf("unknow error"); yyerror("Unknown character");
+. {
+    yyerror("Unknown character");
 }
 
 <fml>.   {
-    printf("unknown error in formula\n");
     char buffer[STR_BUF_SIZE] = {0};
     snprintf((char *)&buffer, STR_BUF_SIZE, "unexpected character in Cell (%d,%d) Formula: %s\n", row_num, col_num, yytext);
     yyerror((char *)&buffer);

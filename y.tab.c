@@ -70,8 +70,8 @@
      STRING = 259,
      REFERENCE = 260,
      FORMULA = 261,
-     SUM = 262,
-     PROD = 263,
+     MUL = 262,
+     SUM = 263,
      IF = 264,
      EMPTY = 265,
      LINE_END = 266,
@@ -87,8 +87,8 @@
 #define STRING 259
 #define REFERENCE 260
 #define FORMULA 261
-#define SUM 262
-#define PROD 263
+#define MUL 262
+#define SUM 263
 #define IF 264
 #define EMPTY 265
 #define LINE_END 266
@@ -398,18 +398,18 @@ union yyalloc
 #endif
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  11
+#define YYFINAL  12
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   32
+#define YYLAST   38
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  22
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  8
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  22
+#define YYNRULES  23
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  32
+#define YYNSTATES  36
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -457,8 +457,8 @@ static const yytype_uint8 yytranslate[] =
 static const yytype_uint8 yyprhs[] =
 {
        0,     0,     3,     5,     6,    10,    12,    16,    18,    19,
-      21,    23,    26,    28,    29,    34,    36,    40,    44,    46,
-      48,    50,    53
+      21,    23,    26,    28,    29,    34,    39,    41,    45,    49,
+      51,    53,    55,    58
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
@@ -466,18 +466,19 @@ static const yytype_int8 yyrhs[] =
 {
       23,     0,    -1,    24,    -1,    -1,    25,    11,    24,    -1,
       25,    -1,    26,    12,    25,    -1,    26,    -1,    -1,     3,
-      -1,     4,    -1,     6,    27,    -1,    10,    -1,    -1,     7,
-      18,    28,    19,    -1,    29,    -1,    28,    20,    29,    -1,
-      29,    21,    29,    -1,    27,    -1,     3,    -1,     5,    -1,
-      16,    29,    -1,    18,    29,    19,    -1
+      -1,     4,    -1,     6,    27,    -1,    10,    -1,    -1,     8,
+      18,    28,    19,    -1,     7,    18,    28,    19,    -1,    29,
+      -1,    28,    20,    29,    -1,    29,    21,    29,    -1,    27,
+      -1,     3,    -1,     5,    -1,    16,    29,    -1,    18,    29,
+      19,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
        0,    62,    62,    64,    65,    67,    71,    72,    73,    76,
-      77,    78,    79,    80,    83,    86,    87,    88,    91,    92,
-      93,    94,    95
+      77,    78,    79,    80,    83,    84,    87,    88,    89,    92,
+      93,    94,    95,    96
 };
 #endif
 
@@ -487,7 +488,7 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "NUMBER", "STRING", "REFERENCE",
-  "FORMULA", "SUM", "PROD", "IF", "EMPTY", "LINE_END", "CELL_END",
+  "FORMULA", "MUL", "SUM", "IF", "EMPTY", "LINE_END", "CELL_END",
   "FILE_END", "IFX", "ELSE", "'-'", "UMINUS", "'('", "')'", "';'", "':'",
   "$accept", "ycel", "rows", "cells", "cell", "stmt", "expr_list", "expr", 0
 };
@@ -508,16 +509,16 @@ static const yytype_uint16 yytoknum[] =
 static const yytype_uint8 yyr1[] =
 {
        0,    22,    23,    24,    24,    24,    25,    25,    25,    26,
-      26,    26,    26,    26,    27,    28,    28,    28,    29,    29,
-      29,    29,    29
+      26,    26,    26,    26,    27,    27,    28,    28,    28,    29,
+      29,    29,    29,    29
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     0,     3,     1,     3,     1,     0,     1,
-       1,     2,     1,     0,     4,     1,     3,     3,     1,     1,
-       1,     2,     3
+       1,     2,     1,     0,     4,     4,     1,     3,     3,     1,
+       1,     1,     2,     3
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -526,15 +527,15 @@ static const yytype_uint8 yyr2[] =
 static const yytype_uint8 yydefact[] =
 {
        3,     9,    10,     0,    12,     0,     2,     5,     7,     0,
-      11,     1,     3,     8,     0,     4,     6,    19,    20,     0,
-       0,    18,     0,    15,    21,     0,    14,     0,     0,    22,
-      16,    17
+       0,    11,     1,     3,     8,     0,     0,     4,     6,    20,
+      21,     0,     0,    19,     0,    16,     0,    22,     0,    15,
+       0,     0,    14,    23,    17,    18
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     5,     6,     7,     8,    21,    22,    23
+      -1,     5,     6,     7,     8,    23,    24,    25
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
@@ -542,16 +543,16 @@ static const yytype_int8 yydefgoto[] =
 #define YYPACT_NINF -15
 static const yytype_int8 yypact[] =
 {
-       6,   -15,   -15,    -6,   -15,     3,   -15,    -4,    -1,   -10,
-     -15,   -15,     6,    16,    -3,   -15,   -15,   -15,   -15,    -3,
-      -3,   -15,   -14,    -7,   -15,     2,   -15,    -3,    -3,   -15,
-     -15,   -15
+       8,   -15,   -15,     2,   -15,     1,   -15,    -8,    -6,     5,
+       9,   -15,   -15,     8,    18,    -3,    -3,   -15,   -15,   -15,
+     -15,    -3,    -3,   -15,     6,    13,    12,   -15,    10,   -15,
+      -3,    -3,   -15,   -15,   -15,   -15
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -15,   -15,    13,    14,   -15,    26,   -15,     4
+     -15,   -15,    20,    21,   -15,    33,    22,   -14
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -561,18 +562,18 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -14
 static const yytype_int8 yytable[] =
 {
-      17,     9,    18,    11,     9,    26,    27,    12,    14,     1,
-       2,    13,     3,    19,    28,    20,     4,    -8,   -13,     1,
-       2,    29,     3,    24,    25,    15,     4,    16,   -13,    10,
-       0,    30,    31
+      19,    12,    20,    13,     9,    10,    14,    27,    28,     9,
+      10,     1,     2,    21,     3,    22,    34,    35,     4,    -8,
+     -13,     1,     2,    15,     3,    29,    30,    16,     4,    33,
+     -13,    32,    30,    17,    31,    18,    11,     0,    26
 };
 
 static const yytype_int8 yycheck[] =
 {
-       3,     7,     5,     0,     7,    19,    20,    11,    18,     3,
-       4,    12,     6,    16,    21,    18,    10,    11,    12,     3,
-       4,    19,     6,    19,    20,    12,    10,    13,    12,     3,
-      -1,    27,    28
+       3,     0,     5,    11,     7,     8,    12,    21,    22,     7,
+       8,     3,     4,    16,     6,    18,    30,    31,    10,    11,
+      12,     3,     4,    18,     6,    19,    20,    18,    10,    19,
+      12,    19,    20,    13,    21,    14,     3,    -1,    16
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -580,9 +581,9 @@ static const yytype_int8 yycheck[] =
 static const yytype_uint8 yystos[] =
 {
        0,     3,     4,     6,    10,    23,    24,    25,    26,     7,
-      27,     0,    11,    12,    18,    24,    25,     3,     5,    16,
-      18,    27,    28,    29,    29,    29,    19,    20,    21,    19,
-      29,    29
+       8,    27,     0,    11,    12,    18,    18,    24,    25,     3,
+       5,    16,    18,    27,    28,    29,    28,    29,    29,    19,
+      20,    21,    19,    19,    29,    29
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1398,32 +1399,32 @@ yyreduce:
     {
         case 2:
 #line 62 "ycel.y"
-    {printf("before root assign\n");(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);root_of_ast = (yyvsp[(1) - (1)].nPtr); printf("ROOT\n");}
+    {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);root_of_ast = (yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 4:
 #line 65 "ycel.y"
-    {printf("hier 5.3\n");(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(LINE_END),TypeCompound, 2, (yyvsp[(1) - (3)].nPtr) , (yyvsp[(3) - (3)].nPtr));}
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(LINE_END),TypeCompound, 2, (yyvsp[(1) - (3)].nPtr) , (yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 5:
 #line 67 "ycel.y"
-    {printf("hier 5.1\n"); (yyval.nPtr)=(yyvsp[(1) - (1)].nPtr); }
+    {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 6:
 #line 71 "ycel.y"
-    {printf("hier 4.1\n");  (yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(CELL_END), TypeCompound, 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr));}
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(CELL_END), TypeCompound, 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 7:
 #line 72 "ycel.y"
-    {printf("hier 4.2\n");  (yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
+    {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 8:
 #line 73 "ycel.y"
-    {printf("hier 4.3\n"); (yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeCompound, 0); }
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeCompound, 0); }
     break;
 
   case 9:
@@ -1433,7 +1434,7 @@ yyreduce:
 
   case 10:
 #line 77 "ycel.y"
-    {printf("hier 1\n");(yyval.nPtr)=mk_node_str((TRef){row_num, col_num},(yyvsp[(1) - (1)].valStr));printf("hier 2\n");DO(update_text_into_table(ch, row_num, col_num, &(yyvsp[(1) - (1)].valStr))); printf("hier 3\n");}
+    {(yyval.nPtr)=mk_node_str((TRef){row_num, col_num},(yyvsp[(1) - (1)].valStr));DO(update_text_into_table(ch, row_num, col_num, &(yyvsp[(1) - (1)].valStr)));}
     break;
 
   case 11:
@@ -1443,7 +1444,7 @@ yyreduce:
 
   case 12:
 #line 79 "ycel.y"
-    {printf("hier empty\n");(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0);}
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY),TypeCompound, 0);}
     break;
 
   case 13:
@@ -1457,48 +1458,53 @@ yyreduce:
     break;
 
   case 15:
-#line 86 "ycel.y"
-    {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
+#line 84 "ycel.y"
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(MUL), TypeMul,1,(yyvsp[(3) - (4)].nPtr));DO(update_node_into_table(ch, row_num, col_num, (yyval.nPtr)));}
     break;
 
   case 16:
 #line 87 "ycel.y"
-    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},';', ";", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
+    {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 17:
 #line 88 "ycel.y"
-    {check_type((yyvsp[(1) - (3)].nPtr), TypeRef); check_type((yyvsp[(3) - (3)].nPtr), TypeRef); (yyval.nPtr)=mk_node((TRef){row_num, col_num},':', ":", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},';', ";", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 18:
-#line 91 "ycel.y"
-    {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
+#line 89 "ycel.y"
+    {check_type((yyvsp[(1) - (3)].nPtr), TypeRef); check_type((yyvsp[(3) - (3)].nPtr), TypeRef); (yyval.nPtr)=mk_node((TRef){row_num, col_num},':', ":", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 19:
 #line 92 "ycel.y"
-    {(yyval.nPtr)=mk_node_num((TRef){row_num, col_num},(yyvsp[(1) - (1)].valNum));}
+    {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 20:
 #line 93 "ycel.y"
-    {(yyval.nPtr)=mk_node_ref((TRef){row_num, col_num},(yyvsp[(1) - (1)].ref));}
+    {(yyval.nPtr)=mk_node_num((TRef){row_num, col_num},(yyvsp[(1) - (1)].valNum));}
     break;
 
   case 21:
 #line 94 "ycel.y"
-    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(UMINUS), TypeMinus, 1, (yyvsp[(2) - (2)].nPtr));}
+    {(yyval.nPtr)=mk_node_ref((TRef){row_num, col_num},(yyvsp[(1) - (1)].ref));}
     break;
 
   case 22:
 #line 95 "ycel.y"
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(UMINUS), TypeMinus, 1, (yyvsp[(2) - (2)].nPtr));}
+    break;
+
+  case 23:
+#line 96 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(2) - (3)].nPtr);}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1502 "y.tab.c"
+#line 1508 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1712,7 +1718,7 @@ yyreturn:
 }
 
 
-#line 97 "ycel.y"
+#line 98 "ycel.y"
 
 
 TNode *mk_node_num(TRef coord, double value) {
@@ -1793,62 +1799,62 @@ void free_node(TNode *p) {
     free (p);
 }
 
-TValNum exec_node(TNode *nPtr)
-{
-    assert(nPtr);
-    switch(nPtr->type)
-    {
-        case TypeRef:
-            assert("not yet implemented" && '\0');
-            break;
-        case TypeNum:
-            return nPtr->num;
-            break;
-        case TypeString:
-            break;
-        case TypeParam:
-        case TypeMinus:
-        case TypeCompound:
-        case TypeSum:
-            switch(nPtr->opr.oper)
-            {
-                case SUM:
-                {
-                    TValNum res = {0.0};
-                    res.value = 0.0;
-                    for(int i=0; i<nPtr->opr.nops; i++)
-                    {
-                        TValNum op_res = exec_node(nPtr->opr.op[i]);
-                        printf("op_res = %.2f\n", op_res.value);
-                        res.value += op_res.value;
-                    }
-                    printf("res = %.2f\n", res.value);
-                    return res;
-                }
-                break;
-                case ';':
-                {
-                    TValNum left = exec_node(nPtr->opr.op[0]);
-
-
-                }
-                break;
-                default:
-                {
-                    TValNum res;
-                    for(int i=0; i<nPtr->opr.nops; i++)
-                    {
-                        res = exec_node(nPtr->opr.op[i]);
-                    }
-                    return res;
-                    break;
-                }
-
-            }
-            break;
-    }
-    return (TValNum){0};
-}
+//TValNum exec_node(TNode *nPtr)
+//{
+//    assert(nPtr);
+//    switch(nPtr->type)
+//    {
+//        case TypeRef:
+//            assert("not yet implemented" && '\0');
+//            break;
+//        case TypeNum:
+//            return nPtr->num;
+//            break;
+//        case TypeString:
+//            break;
+//        case TypeParam:
+//        case TypeMinus:
+//        case TypeCompound:
+//        case TypeSum:
+//            switch(nPtr->opr.oper)
+//            {
+//                case SUM:
+//                {
+//                    TValNum res = {0.0};
+//                    res.value = 0.0;
+//                    for(int i=0; i<nPtr->opr.nops; i++)
+//                    {
+//                        TValNum op_res = exec_node(nPtr->opr.op[i]);
+//                        printf("op_res = %.2f\n", op_res.value);
+//                        res.value += op_res.value;
+//                    }
+//                    printf("res = %.2f\n", res.value);
+//                    return res;
+//                }
+//                break;
+//                case ';':
+//                {
+//                    TValNum left = exec_node(nPtr->opr.op[0]);
+//
+//
+//                }
+//                break;
+//                default:
+//                {
+//                    TValNum res;
+//                    for(int i=0; i<nPtr->opr.nops; i++)
+//                    {
+//                        res = exec_node(nPtr->opr.op[i]);
+//                    }
+//                    return res;
+//                    break;
+//                }
+//
+//            }
+//            break;
+//    }
+//    return (TValNum){0};
+//}
 
 void mk_error(char *s, int line, char* file)
 {

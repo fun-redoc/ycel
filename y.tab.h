@@ -43,8 +43,8 @@
      STRING = 259,
      REFERENCE = 260,
      FORMULA = 261,
-     SUM = 262,
-     PROD = 263,
+     MUL = 262,
+     SUM = 263,
      IF = 264,
      EMPTY = 265,
      LINE_END = 266,
@@ -60,8 +60,8 @@
 #define STRING 259
 #define REFERENCE 260
 #define FORMULA 261
-#define SUM 262
-#define PROD 263
+#define MUL 262
+#define SUM 263
 #define IF 264
 #define EMPTY 265
 #define LINE_END 266

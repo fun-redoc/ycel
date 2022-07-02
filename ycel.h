@@ -17,7 +17,7 @@ typedef struct {
 } TCharBuffer;
 void clearCharBuffer(TCharBuffer *buffer);
 
-typedef enum { TypeRef, TypeNum, TypeString, TypeCompound, TypeMinus, TypeSum, TypeParam } ENodeType;
+typedef enum { TypeRef, TypeNum, TypeString, TypeCompound, TypeMinus, TypeSum, TypeMul, TypeParam } ENodeType;
 
 /* Reference to a Cell */
 typedef struct {
@@ -54,14 +54,6 @@ typedef struct nodeType {
         TOpr opr;         /* operators */
     };
 } TNode;
-
-//typedef enum {ParamList, ParamRange} TParamType;
-//typedef struct 
-//{
-//    TParamType paramType;
-//    TNode **params;
-//} TParams;
-
 
 typedef enum {
     SUCCESS,
