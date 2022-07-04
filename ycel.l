@@ -4,7 +4,8 @@
     #include <string.h>
     #include <ctype.h>
     #include <assert.h>
-    #include "ycel.h"
+    #include "ycel_misc.h"
+    #include "ycel_parser.h"
     #include "y.tab.h"
     #include "string_buffer_view.h"
 
@@ -104,13 +105,9 @@
     return CELL_END; 
 }
 
-<fml>"sum" {
-    return SUM; 
-}
-
-<fml>"mul" {
-    return MUL; 
-}
+<fml>"sum" return SUM; 
+<fml>"mul" return MUL; 
+<fml>"avg" return AVG; 
 
 <fml>[:();-] {
     return *yytext;

@@ -43,16 +43,17 @@
      STRING = 259,
      REFERENCE = 260,
      FORMULA = 261,
-     MUL = 262,
-     SUM = 263,
-     IF = 264,
-     EMPTY = 265,
-     LINE_END = 266,
-     CELL_END = 267,
-     FILE_END = 268,
-     IFX = 269,
-     ELSE = 270,
-     UMINUS = 271
+     AVG = 262,
+     MUL = 263,
+     SUM = 264,
+     IF = 265,
+     EMPTY = 266,
+     LINE_END = 267,
+     CELL_END = 268,
+     FILE_END = 269,
+     IFX = 270,
+     ELSE = 271,
+     UMINUS = 272
    };
 #endif
 /* Tokens.  */
@@ -60,23 +61,24 @@
 #define STRING 259
 #define REFERENCE 260
 #define FORMULA 261
-#define MUL 262
-#define SUM 263
-#define IF 264
-#define EMPTY 265
-#define LINE_END 266
-#define CELL_END 267
-#define FILE_END 268
-#define IFX 269
-#define ELSE 270
-#define UMINUS 271
+#define AVG 262
+#define MUL 263
+#define SUM 264
+#define IF 265
+#define EMPTY 266
+#define LINE_END 267
+#define CELL_END 268
+#define FILE_END 269
+#define IFX 270
+#define ELSE 271
+#define UMINUS 272
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 42 "ycel.y"
+#line 44 "ycel.y"
 {
     double valNum;     
     TStringView valStr;
@@ -84,7 +86,7 @@ typedef union YYSTYPE
     TNode *nPtr;       
 }
 /* Line 1529 of yacc.c.  */
-#line 88 "y.tab.h"
+#line 90 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

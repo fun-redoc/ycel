@@ -4,7 +4,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
-#include "ycel.h"
+#include "ycel_misc.h"
+#include "ycel_parser.h"
+#include "ycel_table.h"
 #include "string_buffer_view.h"
 
 #define DO(proc) if(ERR==proc) mk_error("Failure.", __LINE__, __FILE__)
@@ -49,7 +51,7 @@ extern FILE* yyin;
 %token <valNum> NUMBER
 %token <valStr> STRING
 %token <ref> REFERENCE
-%token FORMULA MUL SUM IF EMPTY LINE_END CELL_END FILE_END
+%token FORMULA AVG MUL SUM IF EMPTY LINE_END CELL_END FILE_END
 %nonassoc IFX
 %nonassoc ELSE
 %left '-'
@@ -82,6 +84,7 @@ cell:
 stmt:
       SUM '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(SUM), TypeSum,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
     | MUL '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(MUL), TypeMul,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
+    | AVG '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(AVG), TypeAvg,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
 
 expr_list:
       expr                   {$$=$1;}

@@ -6,3 +6,4 @@ A, hallo 5 world,     "sum complete column"
   5,  2
 =sum(A2:B6),    =sum(sum(A2;A3;A4;A5;A6);sum(B2:B6))
 =mul(5;2) , =mul(A2:A6) , =mul((2,1);(4,1);(5,2))     
+=avg((2,1):(6,1))

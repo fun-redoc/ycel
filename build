@@ -6,7 +6,7 @@ rm y.tab.h
 bison -y -d ycel.y
 flex ycel.l
 
-cc ycel.c y.tab.c lex.yy.c string_buffer_view.c -O0 -o ycel -g -arch x86_64 -DYYERROR_VERBOSE
+cc ycel_misc.c ycel_parser.c ycel_table.c y.tab.c lex.yy.c string_buffer_view.c -O0 -o ycel -g -arch x86_64 -DYYERROR_VERBOSE
 # execute a test
 ./ycel test.csv
     
