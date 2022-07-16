@@ -122,7 +122,7 @@ void fill_formula_cell(TCell *c, size_t row, size_t col, const TStringView *sw)
     c->as.swFormula = *sw;
 }
 
-void fill_node_cell(TCell *c, size_t row, size_t col, const TNode *nd)
+void fill_node_cell(TCell *c, size_t row, size_t col, TNode *nd)
 {
     c->row = row;
     c->col = col;
@@ -186,7 +186,7 @@ EResult update_formula_into_table(TCellHeap *t, size_t row, size_t col, const TS
     fill_formula_cell(&cell, row,col,sw);
     return update_cell_into_table(t, row, col, cell);
 }
-EResult update_node_into_table(TCellHeap *t, size_t row, size_t col, const TNode *nd)
+EResult update_node_into_table(TCellHeap *t, size_t row, size_t col, TNode *nd)
 {
     assert(nd);
     TCell cell; 
@@ -230,6 +230,13 @@ double calc_node(TCellHeap *t, const TNode *nd)
         }
         break;
         case TypeMinus:
+        {
+            assert(nd->opr.nops == 1);
+            double res = 0;
+            res =-calc_node(t, nd->opr.op[0]);
+            return res;
+        }
+        break;
         case TypeParam:
         case TypeCompound:
         {

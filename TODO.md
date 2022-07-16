@@ -1,1 +1,2 @@
+- implement infix expressions
 - use wide string for UTF

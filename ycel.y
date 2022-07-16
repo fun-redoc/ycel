@@ -85,6 +85,7 @@ stmt:
       SUM '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(SUM), TypeSum,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
     | MUL '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(MUL), TypeMul,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
     | AVG '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(AVG), TypeAvg,1,$3);DO(update_node_into_table(ch, row_num, col_num, $$));}
+    | '-' stmt %prec UMINUS    {$$=mk_node((TRef){row_num, col_num},OPR(UMINUS), TypeMinus, 1, $2);DO(update_node_into_table(ch, row_num, col_num, $$));}
 
 expr_list:
       expr                   {$$=$1;}
@@ -177,63 +178,6 @@ void free_node(TNode *p) {
     }
     free (p);
 }
-
-//TValNum exec_node(TNode *nPtr)
-//{
-//    assert(nPtr);
-//    switch(nPtr->type)
-//    {
-//        case TypeRef:
-//            assert("not yet implemented" && '\0');
-//            break;
-//        case TypeNum:
-//            return nPtr->num;
-//            break;
-//        case TypeString:
-//            break;
-//        case TypeParam:
-//        case TypeMinus:
-//        case TypeCompound:
-//        case TypeSum:
-//            switch(nPtr->opr.oper)
-//            {
-//                case SUM:
-//                {
-//                    TValNum res = {0.0};
-//                    res.value = 0.0;
-//                    for(int i=0; i<nPtr->opr.nops; i++)
-//                    {
-//                        TValNum op_res = exec_node(nPtr->opr.op[i]);
-//                        printf("op_res = %.2f\n", op_res.value);
-//                        res.value += op_res.value;
-//                    }
-//                    printf("res = %.2f\n", res.value);
-//                    return res;
-//                }
-//                break;
-//                case ';':
-//                {
-//                    TValNum left = exec_node(nPtr->opr.op[0]);
-//
-//
-//                }
-//                break;
-//                default:
-//                {
-//                    TValNum res;
-//                    for(int i=0; i<nPtr->opr.nops; i++)
-//                    {
-//                        res = exec_node(nPtr->opr.op[i]);
-//                    }
-//                    return res;
-//                    break;
-//                }
-//
-//            }
-//            break;
-//    }
-//    return (TValNum){0};
-//}
 
 void mk_error(char *s, int line, char* file)
 {

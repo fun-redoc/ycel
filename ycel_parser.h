@@ -49,7 +49,7 @@ typedef struct nodeType {
 } TNode;
 void dump_tree_preorder(TNode *head, FILE *f);
 void dump_tree_postorder(TNode *head, FILE *f);
-void dump_node(TCharBuffer *buffer, const TNode *nd, const int level);
+void dump_node(TCharBuffer *buffer, TNode *nd, const int level);
 TNode *gather_params2(TNode *params, size_t *n, TNode *nd);
 
 #endif

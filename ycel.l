@@ -112,6 +112,7 @@
 <fml>[:();-] {
     return *yytext;
 }
+
 <fml>[+-]?[0-9]+(\.[0-9]+)?([eE][0-9]+)? {
 /* -- NUM -- */
     yylval.valNum = atof(yytext);

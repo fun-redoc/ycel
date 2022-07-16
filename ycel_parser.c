@@ -29,8 +29,8 @@ TNode *gather_params2(TNode *params, size_t *n, TNode *nd)
     if(sep == ':') 
     {
 
-        TNode *head = nd->opr.op[0];
-        TNode *tail = nd->opr.op[1];
+        const TNode *head = nd->opr.op[0];
+        const TNode *tail = nd->opr.op[1];
         assert(head->type == TypeRef && tail->type == TypeRef); // only defined for references
         int from_x, from_y, to_x, to_y;
         if(head->ref.x < tail->ref.x)
@@ -106,7 +106,7 @@ TNode *gather_params2(TNode *params, size_t *n, TNode *nd)
     }
 }
 
-void dump_node(TCharBuffer *buffer, const TNode *nd, const int level)
+void dump_node(TCharBuffer *buffer, TNode *nd, const int level)
 {
    level_prefix(buffer, level);
 
@@ -128,6 +128,12 @@ void dump_node(TCharBuffer *buffer, const TNode *nd, const int level)
        }
        break;
        case TypeMinus:
+       {
+          assert(nd->opr.nops == 1);
+          charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+          dump_node(buffer, nd->opr.op[0],0);
+       }
+       break;
        case TypeParam:
        case TypeCompound:
        {
