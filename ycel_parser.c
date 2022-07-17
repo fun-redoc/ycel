@@ -5,7 +5,6 @@
 #include "string_buffer_view.h"
 #include "ycel_misc.h"
 #include "ycel_parser.h"
-#include "ycel_table.h"
 #include "maybe.h"
 
 //************ Parser ************
@@ -115,29 +114,44 @@ void dump_node(TCharBuffer *buffer, TNode *nd, const int level)
        case TypeNum:
        {
           charBuffer_snprintf(buffer, "Num=%.2f", nd->num.value);
+          charBuffer_snprintf(buffer,"%s","\n"); 
        }
        break;
        case TypeString:
        {
           charBuffer_snprintf(buffer, "Str=%s", get_string(&nd->str.value)); 
+          charBuffer_snprintf(buffer,"%s","\n"); 
        }
        break;
        case TypeRef:
        {
           charBuffer_snprintf(buffer, "Ref=(%d,%d)", nd->ref.x, nd->ref.y); 
+          charBuffer_snprintf(buffer,"%s","\n"); 
        }
        break;
-       case TypeMinus:
+       case TypeNeg:
        {
           assert(nd->opr.nops == 1);
           charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+          charBuffer_snprintf(buffer,"%s","\n"); 
           dump_node(buffer, nd->opr.op[0],0);
        }
        break;
        case TypeParam:
+       {
+            assert(false && "not implemented");
+       }
+       break;
        case TypeCompound:
+       case TypeNewLine:
+       case TypeNewCell:
        {
           charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+          charBuffer_snprintf(buffer,"%s","\n"); 
+          for(int i=0; i < nd->opr.nops; i++)
+          {
+            dump_node(buffer, nd->opr.op[i],0);
+          }
        }
        break;
        case TypeAvg:
@@ -159,47 +173,21 @@ void dump_node(TCharBuffer *buffer, TNode *nd, const int level)
                 }
             }
           }
+          charBuffer_snprintf(buffer,"%s","\n"); 
           free(params);
        }
        break;
+       case TypePlus:
+       case TypeMinus:
+       case TypeTimes:
+       case TypeDiv:
+       {
+          assert(nd->opr.nops == 2);
+          charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+          dump_node(buffer, nd->opr.op[0],0);
+          dump_node(buffer, nd->opr.op[1],0);
+          charBuffer_snprintf(buffer,"%s","\n"); 
+       }
+       break;
    }
-}
-
-void dump_tree_preorder_internale(TCharBuffer *buffer, TNode *head, int level)
-{
-    dump_node(buffer, head, level);
-    if(head->type == TypeCompound)
-    {
-        for(int i=0; i<head->opr.nops; i++)
-        {
-            dump_tree_preorder_internale(buffer, head->opr.op[i], level+1);
-        }
-    }
-}
-void dump_tree_preorder(TNode *head, FILE *f) 
-{
-    TCharBuffer buffer; 
-    clearCharBuffer(&buffer);
-
-    dump_tree_preorder_internale(&buffer, head, 0);
-    fprintf(f,"%s\n", buffer.cs);
-}
-
-void dump_tree_postorder_internale(TCharBuffer *buffer, TNode *head, int level)
-{
-    if(head->type == TypeCompound)
-    {
-        for(int i=0; i<head->opr.nops; i++)
-        {
-            dump_tree_postorder_internale(buffer, head->opr.op[i], level+1);
-        }
-    }
-    dump_node(buffer, head, level);
-}
-void dump_tree_postorder(TNode *head, FILE *f) 
-{
-    TCharBuffer buffer;
-    clearCharBuffer(&buffer);
-    dump_tree_postorder_internale(&buffer,head, 0);
-    fprintf(f,"%s\n",(&buffer)->cs);
 }

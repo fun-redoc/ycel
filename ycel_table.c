@@ -229,7 +229,7 @@ double calc_node(TCellHeap *t, const TNode *nd)
             return c->as.number;
         }
         break;
-        case TypeMinus:
+        case TypeNeg:
         {
             assert(nd->opr.nops == 1);
             double res = 0;
@@ -238,9 +238,19 @@ double calc_node(TCellHeap *t, const TNode *nd)
         }
         break;
         case TypeParam:
-        case TypeCompound:
         {
             assert(NULL && "not yet implemented");
+        }
+        break;
+        case TypeNewLine:
+        case TypeNewCell:
+        {
+            assert(false && "should not happen");
+        }
+        case TypeCompound:
+        {
+            assert(nd->opr.nops == 1);
+            return calc_node(t, nd->opr.op[0]);
         }
         break;
         case TypeSum:
@@ -288,6 +298,37 @@ double calc_node(TCellHeap *t, const TNode *nd)
             return res/((double)n);
         }
         break;
+        case TypePlus:
+        case TypeMinus:
+        case TypeTimes:
+        case TypeDiv:
+       {
+          assert(nd->opr.nops == 2);
+//          charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
+//          dump_node(buffer, nd->opr.op[0],0);
+//          dump_node(buffer, nd->opr.op[1],0);
+          switch (nd->opr.oper)
+          {
+          case '+':
+            return calc_node(t, nd->opr.op[0]) + calc_node(t,nd->opr.op[1]);
+          break;
+          case '-':
+          {
+            return calc_node(t, nd->opr.op[0]) - calc_node(t,nd->opr.op[1]);
+          }
+          break;
+          case '*':
+            return calc_node(t, nd->opr.op[0]) * calc_node(t,nd->opr.op[1]);
+          break;
+          case '/':
+            return calc_node(t, nd->opr.op[0]) / calc_node(t,nd->opr.op[1]);
+          break;
+          
+          default:
+            assert(NULL && "unknown operator.");
+          }
+       }
+       break;
     }
 }
 
@@ -334,4 +375,83 @@ void calc(TCellHeap *t)
     {
         calc_cell_by_idx(t, i);
     }
+}
+
+// transforms tree to an appropriate structure for a table and
+// adjusts the row,col numbers. I wasnt able to manage row,col
+// during parsing
+void tree_to_table(TCellHeap *t, TNode *nd, int row, int col)
+{
+   switch(nd->type)
+   {
+       case TypeNum:
+       {
+        nd->coord = (TRef){col, row};
+        TRY(update_num_into_table(t, row, col, nd->num.value));
+       }
+       break;
+       case TypeString:
+       {
+        nd->coord = (TRef){col, row};
+        TRY(update_text_into_table(t, row, col, &(nd->str.value)));
+       }
+       break;
+       case TypeRef:
+       {
+       }
+       break;
+       case TypeNeg:
+       {
+        nd->coord = (TRef){col, row};
+        TRY(update_node_into_table(t, row, col, nd));
+       }
+       break;
+       case TypeParam:
+       break;
+       case TypeCompound:
+       {
+        for(int i=0; i < nd->opr.nops; i++)
+        {
+            tree_to_table(t, nd->opr.op[i],row,col);
+        }
+       }
+       break;
+       case TypeNewLine:
+       {
+        assert(nd->opr.nops == 2);
+        tree_to_table(t, nd->opr.op[0],row,col);
+        tree_to_table(t, nd->opr.op[1],row+1,0);
+       }
+       break;
+       case TypeNewCell:
+       {
+        assert(nd->opr.nops == 2);
+        nd->coord = (TRef){col, row};
+        tree_to_table(t, nd->opr.op[0],row,col);
+        tree_to_table(t, nd->opr.op[1],row,col+1);
+       }
+       break;
+       case TypeAvg:
+       case TypeMul:
+       case TypeSum:
+       {
+          assert(nd->opr.nops == 1);
+          nd->coord = (TRef){col, row};
+          TRY(update_node_into_table(t, row, col, nd));
+       }
+       break;
+       case TypePlus:
+       case TypeMinus:
+       case TypeTimes:
+       case TypeDiv:
+       {
+          assert(nd->opr.nops == 2);
+          nd->coord = (TRef){col, row};
+          TRY(update_node_into_table(t, row, col, nd));
+       }
+       break;
+   }
+   return;
+   error:
+    assert(false && "error happened.");
 }

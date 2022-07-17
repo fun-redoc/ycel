@@ -8,8 +8,10 @@
 //************ Parser ************
 #define MAX_OPER_NAME_SIZE 100
 
-typedef enum { TypeRef, TypeNum, TypeString, TypeCompound, TypeMinus, 
+typedef enum { TypeRef, TypeNum, TypeString, TypeCompound, TypeNeg, 
+               TypeNewLine, TypeNewCell,
                TypeSum, TypeMul, TypeAvg,
+               TypePlus,TypeMinus,TypeTimes,TypeDiv,
                TypeParam } ENodeType;
 
 /* Reference to a Cell */
@@ -47,8 +49,6 @@ typedef struct nodeType {
         TOpr opr;         /* operators */
     };
 } TNode;
-void dump_tree_preorder(TNode *head, FILE *f);
-void dump_tree_postorder(TNode *head, FILE *f);
 void dump_node(TCharBuffer *buffer, TNode *nd, const int level);
 TNode *gather_params2(TNode *params, size_t *n, TNode *nd);
 

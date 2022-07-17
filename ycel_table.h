@@ -58,4 +58,6 @@ EResult update_formula_into_table(TCellHeap *t, size_t row, size_t col, const TS
 TCell *find_cell_in_table(TCellHeap *t, size_t row, size_t col);
 void calc(TCellHeap *t);
 
+void tree_to_table(TCellHeap *t, TNode *nd, int row, int col);
+
 #endif

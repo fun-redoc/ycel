@@ -23,7 +23,7 @@
 typedef struct {
     size_t len; 
     size_t last;
-    char   cs[9*STR_BUF_SIZE];
+    char   cs[16*STR_BUF_SIZE];
 } TCharBuffer;
 void clearCharBuffer(TCharBuffer *buffer);
 bool charBufferEmpty(const TCharBuffer *buffer);
