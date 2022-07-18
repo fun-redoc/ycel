@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 #include "string_buffer_view.h"
 #include "ycel_misc.h"
 #include "ycel_parser.h"
@@ -546,6 +547,7 @@ void pretty_print(FILE *f, TCellHeap *ch)
 
         size_t row=0;
         size_t col=0;
+        fprintf(f,"|");
         for(int i=0; i < ch->last; i++)
         {
 
@@ -560,7 +562,7 @@ void pretty_print(FILE *f, TCellHeap *ch)
                     memset(&(col_buf[j][len-1]), '\0', 1);
                     fputs(col_buf[j], f);
                 }
-                fprintf(f,"|\n");
+                fprintf(f,"|\n|");
             }
             if( col < ch->cells[i].col) fprintf(f,"|");
 
@@ -573,17 +575,15 @@ void pretty_print(FILE *f, TCellHeap *ch)
             {
                 char *s = get_string(&(ch->cells[i].as.swText));
                 size_t sl = strlen(s);
-                memcpy(col_buf[ch->cells[i].col], s, sl ); // copy no \0 
+                size_t cl = col_width[ch->cells[i].col];
+                double float_offset = (cl - sl) / 2;
+                size_t offset = floor(float_offset);
+                offset = 0.5 > (float_offset - offset) ? ceil(float_offset) : offset;
+                memcpy(col_buf[ch->cells[i].col]+offset, s, sl ); // copy no \0 
                 fputs(col_buf[ch->cells[i].col],f);
             }
             if(ch->cells[i].kind == KIND_NUM)
             {
-                //sprintf(col_buf[ch->cells[i].col], "%f", ch->cells[i].as.number);
-                //size_t sl = strlen(col_buf[ch->cells[i].col]);
-                //if( col_width[ch->cells[i].col] > sl)
-                //{
-                //    memset(col_buf[ch->cells[i].col]+sl,' ', 1); // override \0
-                //}
                 snprintf(tmp_buf, TMP_BUF_SIZE, "%f", ch->cells[i].as.number);
                 size_t sl = strlen(tmp_buf);
                 size_t dl = col_width[ch->cells[i].col]-sl;
