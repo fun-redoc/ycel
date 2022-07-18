@@ -150,8 +150,8 @@ EResult append_cell_to_table(TCellHeap *t, size_t row, size_t col, TCell cell)
     t->cells[t->last] = cell;
     TCell aux = t->cells[t->last];
     t->last++;
-    t->rows = MAX(t->rows, row);
-    t->cols = MAX(t->cols, col);
+    t->rows = MAX(t->rows, row+1);
+    t->cols = MAX(t->cols, col+1);
     return SUCCESS;
 }
 
@@ -299,36 +299,21 @@ double calc_node(TCellHeap *t, const TNode *nd)
         }
         break;
         case TypePlus:
+                assert(nd->opr.nops == 2);
+                return calc_node(t, nd->opr.op[0]) + calc_node(t,nd->opr.op[1]);
+            break;
         case TypeMinus:
+                assert(nd->opr.nops == 2);
+                return calc_node(t, nd->opr.op[0]) - calc_node(t,nd->opr.op[1]);
+            break;
         case TypeTimes:
+                assert(nd->opr.nops == 2);
+                return calc_node(t, nd->opr.op[0]) * calc_node(t,nd->opr.op[1]);
+            break;
         case TypeDiv:
-       {
-          assert(nd->opr.nops == 2);
-//          charBuffer_snprintf(buffer, "Nd=%s(%d) with nops=%d", nd->opr.oper_name, nd->opr.oper, nd->opr.nops); 
-//          dump_node(buffer, nd->opr.op[0],0);
-//          dump_node(buffer, nd->opr.op[1],0);
-          switch (nd->opr.oper)
-          {
-          case '+':
-            return calc_node(t, nd->opr.op[0]) + calc_node(t,nd->opr.op[1]);
-          break;
-          case '-':
-          {
-            return calc_node(t, nd->opr.op[0]) - calc_node(t,nd->opr.op[1]);
-          }
-          break;
-          case '*':
-            return calc_node(t, nd->opr.op[0]) * calc_node(t,nd->opr.op[1]);
-          break;
-          case '/':
-            return calc_node(t, nd->opr.op[0]) / calc_node(t,nd->opr.op[1]);
-          break;
-          
-          default:
-            assert(NULL && "unknown operator.");
-          }
-       }
-       break;
+                assert(nd->opr.nops == 2);
+                return calc_node(t, nd->opr.op[0]) / calc_node(t,nd->opr.op[1]);
+            break;
     }
 }
 
@@ -454,4 +439,49 @@ void tree_to_table(TCellHeap *t, TNode *nd, int row, int col)
    return;
    error:
     assert(false && "error happened.");
+}
+
+int comp_cell_ref (const void * cell1, const void * cell2) 
+{
+    TCell c1 = *((TCell*)cell1);
+    TCell c2 = *((TCell*)cell2);
+    if(c1.row < c2.row) return  1;
+    if(c1.row == c2.row && c1.col < c2.col) return 1;
+    if(c1.row == c2.row && c1.col > c2.col) return -1;
+    if(c1.row > c2.row) return  -1;
+    return 0;
+}
+
+void table_out(FILE *f, TCellHeap *ch, const char colsep, const char *rowsep)
+{
+    assert(ch);
+    assert(f);
+    // 1. sort by cell reference (row, col), it maybe is not guarantied, that the parse result is in correct order
+    qsort (ch->cells, sizeof(ch->cells)/sizeof(TCell*), sizeof(TCell*), comp_cell_ref); 
+    //dump_cell_heap(stdout, ch);
+    // 2. write csv.
+    if(ch->last > 0)
+    {
+        size_t row = ch->cells[0].row;
+        size_t col = ch->cells[0].col;
+        for(int i=0; i < ch->last; i++)
+        {
+            assert(   ch->cells[i].evalStatus == ready 
+                   && (   ch->cells[i].kind == KIND_EMPTY 
+                       || ch->cells[i].kind == KIND_NUM 
+                       || ch->cells[i].kind == KIND_TEXT
+                      )
+                  );
+
+            if( row < ch->cells[i].row) fprintf(f,"%s",rowsep);
+            if( col < ch->cells[i].col) fprintf(f,"%c",colsep);
+            if(ch->cells[i].kind == KIND_TEXT) fprintf(f,"%s",get_string(&(ch->cells[i].as.swText)));
+            if(ch->cells[i].kind == KIND_NUM) fprintf(f, "%f", ch->cells[i].as.number);
+            row = ch->cells[i].row;
+            col = ch->cells[i].col;
+        }
+    }
+    fprintf(f,"\n");
+    fflush(f);
+    return;
 }

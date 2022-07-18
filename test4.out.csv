@@ -1,0 +1,25 @@
+--- after calclulation ---
+in dump cell heap
+YCEL: Dump Cell Heap
+YCEL: max=32, last=21, rows=9, cols=2
+YCAL: Cell (0,0) of Kind TEXT; Value=|A|
+YCAL: Cell (0,1) of Kind TEXT; Value=|hallo 5 world|
+YCAL: Cell (0,2) of Kind TEXT; Value=|sum complete column|
+YCAL: Cell (1,0) of Kind NUM; Value=1.00
+YCAL: Cell (1,1) of Kind NUM; Value=2.00
+YCAL: Cell (2,0) of Kind NUM; Value=2.00
+YCAL: Cell (2,1) of Kind NUM; Value=2.00
+YCAL: Cell (3,0) of Kind NUM; Value=3.00
+YCAL: Cell (3,1) of Kind NUM; Value=2.00
+YCAL: Cell (4,0) of Kind NUM; Value=4.00
+YCAL: Cell (4,1) of Kind NUM; Value=2.00
+YCAL: Cell (5,0) of Kind NUM; Value=5.00
+YCAL: Cell (5,1) of Kind NUM; Value=-2.00
+YCAL: Cell (6,0) of Kind NUM; Value=21.00
+YCAL: Cell (6,1) of Kind NUM; Value=21.00
+YCAL: Cell (7,0) of Kind NUM; Value=10.00
+YCAL: Cell (7,1) of Kind NUM; Value=-120.00
+YCAL: Cell (7,2) of Kind NUM; Value=6.00
+YCAL: Cell (8,0) of Kind NUM; Value=3.00
+YCAL: Cell (9,0) of Kind NUM; Value=8.00
+YCAL: Cell (9,1) of Kind NUM; Value=-9.00
