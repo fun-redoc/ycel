@@ -1,6 +1,6 @@
 In Work:
 --------
-- pretty printer, print as nice looking readable table
+- pretty printer, make number right aligned
 
 TODO:
 -----
@@ -14,6 +14,7 @@ IDEAS:
 
 READY:
 ------
+- pretty printer, print as nice looking readable table
 - fix empty cell printout bug
 - write out resulting table as csv
 - implement infix expressions

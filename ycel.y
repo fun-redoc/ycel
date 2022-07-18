@@ -212,9 +212,9 @@ int main(void) {
     //yyin = fopen("test1.csv", "r"); // with Ref
     //yyin = fopen("test0.csv", "r"); // only nums
     //yyin = fopen("test3.csv", "r"); // with Ref loop should fail with assertion error
-#ifdef __DEBUG__
+//#ifdef __DEBUG__
     yyin = fopen("test4.csv", "r"); 
-#endif
+//#endif
 
     yyparse();
     tree_to_table(ch, root_of_ast, 0,0);
@@ -231,7 +231,8 @@ int main(void) {
     dump_cell_heap(stdout, ch);
 #endif
 
-    table_out(stdout, ch, ',', "\n");
+    //table_out(stdout, ch, ',', "\n");
+    pretty_print(stdout, ch);
 
     cleanup();
     free_node(root_of_ast);

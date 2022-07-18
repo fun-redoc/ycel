@@ -514,6 +514,13 @@ void pretty_print(FILE *f, TCellHeap *ch)
         qsort (ch->cells, sizeof(ch->cells)/sizeof(TCell*), sizeof(TCell*), comp_cell_ref); 
         //dump_cell_heap(stdout, ch);
         // 2. determin col witdths
+        // 2.1 initialize with 0
+        for(int i=0; i < ch->cols; i++)
+        {
+            col_width[i] = 0;
+        }
+        // 2.2. determin maximal lenght per col simulating the output
+        char tmp_buf[255];
         for(int i=0; i < ch->last; i++)
         {
             if(ch->cells[i].kind == KIND_TEXT) 
@@ -522,7 +529,6 @@ void pretty_print(FILE *f, TCellHeap *ch)
             }
             if(ch->cells[i].kind == KIND_NUM) 
             {
-                char tmp_buf[255];
                 MAX_ASSIGN(col_width[ch->cells[i].col], sprintf(tmp_buf, "%f", ch->cells[i].as.number));
             }
         }
@@ -531,7 +537,7 @@ void pretty_print(FILE *f, TCellHeap *ch)
         char *col_buf[ch->cols];
         for(int i=0; i < ch->cols; i++)
         {
-            size_t len = col_width[ch->cells[i].col];
+            size_t len = col_width[i]+1;
             col_buf[i] = malloc(sizeof(char)*len);
             memset(col_buf[i], ' ', len-1);
             memset(&(col_buf[i][len-1]), '\0', 1);
@@ -548,20 +554,51 @@ void pretty_print(FILE *f, TCellHeap *ch)
                 for(int j=col+1; j < ch->cols; j++)
                 {
                     fprintf(f,"|");
-                    size_t len = col_width[ch->cells[i].col];
-                    memset(col_buf[i], ' ', len-1);
-                    memset(&(col_buf[i][len-1]), '\0', 1);
-                    fputs(col_buf[i], f);
+                    size_t len = col_width[j]+1;
+                    memset(col_buf[j], ' ', len-1);
+                    memset(&(col_buf[j][len-1]), '\0', 1);
+                    fputs(col_buf[j], f);
                 }
-                fprintf(f,"\n");
+                fprintf(f,"|\n");
             }
             if( col < ch->cells[i].col) fprintf(f,"|");
-            if(ch->cells[i].kind == KIND_TEXT) fprintf(f,"%s",get_string(&(ch->cells[i].as.swText)));
-            if(ch->cells[i].kind == KIND_NUM) fprintf(f, "%f", ch->cells[i].as.number);
+
+            size_t len = col_width[ch->cells[i].col]+1;
+            memset(col_buf[ch->cells[i].col], ' ', len-1);
+            memset(&(col_buf[ch->cells[i].col][len-1]), '\0', 1);
+
+            if(ch->cells[i].kind == KIND_EMPTY) fputs(col_buf[ch->cells[i].col],f);
+            if(ch->cells[i].kind == KIND_TEXT) 
+            {
+                char *s = get_string(&(ch->cells[i].as.swText));
+                size_t sl = strlen(s);
+                memcpy(col_buf[ch->cells[i].col], s, sl ); // copy no \0 
+                fputs(col_buf[ch->cells[i].col],f);
+            }
+            if(ch->cells[i].kind == KIND_NUM)
+            {
+                sprintf(col_buf[ch->cells[i].col], "%f", ch->cells[i].as.number);
+                size_t sl = strlen(col_buf[ch->cells[i].col]);
+                if( col_width[ch->cells[i].col] > sl)
+                {
+                    memset(col_buf[ch->cells[i].col]+sl,' ', 1); // override \0
+                }
+                fputs(col_buf[ch->cells[i].col],f);
+            }
 
             row = ch->cells[i].row;
             col = ch->cells[i].col;
         }
+        // fill up empty cells
+        for(int j=col+1; j < ch->cols; j++)
+        {
+            fprintf(f,"|");
+            size_t len = col_width[j]+1;
+            memset(col_buf[j], ' ', len-1);
+            memset(&(col_buf[j][len-1]), '\0', 1);
+            fputs(col_buf[j], f);
+        }
+        fprintf(f,"|\n");
         // release memory for col buffer
         for(int i=0; i < ch->cols; i++)
         {
