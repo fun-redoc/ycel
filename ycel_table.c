@@ -8,6 +8,7 @@
 #include "ycel_table.h"
 #include "maybe.h"
 
+#define TMP_BUF_SIZE 255
 //************ Table Handling ************
 
 // prototypes
@@ -520,7 +521,7 @@ void pretty_print(FILE *f, TCellHeap *ch)
             col_width[i] = 0;
         }
         // 2.2. determin maximal lenght per col simulating the output
-        char tmp_buf[255];
+        char tmp_buf[TMP_BUF_SIZE];
         for(int i=0; i < ch->last; i++)
         {
             if(ch->cells[i].kind == KIND_TEXT) 
@@ -529,7 +530,7 @@ void pretty_print(FILE *f, TCellHeap *ch)
             }
             if(ch->cells[i].kind == KIND_NUM) 
             {
-                MAX_ASSIGN(col_width[ch->cells[i].col], sprintf(tmp_buf, "%f", ch->cells[i].as.number));
+                MAX_ASSIGN(col_width[ch->cells[i].col], snprintf(tmp_buf, TMP_BUF_SIZE, "%f", ch->cells[i].as.number));
             }
         }
         // 3. pretty print it
@@ -577,12 +578,17 @@ void pretty_print(FILE *f, TCellHeap *ch)
             }
             if(ch->cells[i].kind == KIND_NUM)
             {
-                sprintf(col_buf[ch->cells[i].col], "%f", ch->cells[i].as.number);
-                size_t sl = strlen(col_buf[ch->cells[i].col]);
-                if( col_width[ch->cells[i].col] > sl)
-                {
-                    memset(col_buf[ch->cells[i].col]+sl,' ', 1); // override \0
-                }
+                //sprintf(col_buf[ch->cells[i].col], "%f", ch->cells[i].as.number);
+                //size_t sl = strlen(col_buf[ch->cells[i].col]);
+                //if( col_width[ch->cells[i].col] > sl)
+                //{
+                //    memset(col_buf[ch->cells[i].col]+sl,' ', 1); // override \0
+                //}
+                snprintf(tmp_buf, TMP_BUF_SIZE, "%f", ch->cells[i].as.number);
+                size_t sl = strlen(tmp_buf);
+                size_t dl = col_width[ch->cells[i].col]-sl;
+                assert(dl>=0);
+                memcpy(col_buf[ch->cells[i].col]+dl,tmp_buf,sl); 
                 fputs(col_buf[ch->cells[i].col],f);
             }
 

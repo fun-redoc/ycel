@@ -1,6 +1,6 @@
 In Work:
 --------
-- pretty printer, make number right aligned
+- pretty printer, make string center aligned
 
 TODO:
 -----
@@ -14,6 +14,7 @@ IDEAS:
 
 READY:
 ------
+- pretty printer, make number right aligned
 - pretty printer, print as nice looking readable table
 - fix empty cell printout bug
 - write out resulting table as csv
