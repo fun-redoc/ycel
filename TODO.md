@@ -1,6 +1,5 @@
 In Work:
 --------
-- fix empty cell printout bug
 - pretty printer, print as nice looking readable table
 
 TODO:
@@ -15,6 +14,7 @@ IDEAS:
 
 READY:
 ------
+- fix empty cell printout bug
 - write out resulting table as csv
 - implement infix expressions
 - Test usage of prefix + and - (in all contexts)

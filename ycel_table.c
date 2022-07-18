@@ -475,7 +475,7 @@ void table_out(FILE *f, TCellHeap *ch, const char colsep, const char *rowsep)
     assert(f);
     // 1. sort by cell reference (row, col), it maybe is not guarantied, that the parse result is in correct order
     qsort (ch->cells, sizeof(ch->cells)/sizeof(TCell*), sizeof(TCell*), comp_cell_ref); 
-    dump_cell_heap(stdout, ch);
+    //dump_cell_heap(stdout, ch);
     // 2. write csv.
     if(ch->last > 0)
     {

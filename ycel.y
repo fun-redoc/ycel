@@ -219,10 +219,10 @@ int main(void) {
     yyparse();
     tree_to_table(ch, root_of_ast, 0,0);
 
-//#ifdef __DEBUG__
+#ifdef __DEBUG__
     fprintf(stdout, "--- before calclulation ---\n");
     dump_cell_heap(stdout, ch);
-//#endif
+#endif
 
     calc(ch);
 
