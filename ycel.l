@@ -72,6 +72,10 @@
 
 [^=",\r\n \t]+[^",\r\n]* { 
 /* -- STRING w/o quotes -- */
+    if(strlen(yytext)==0)
+    {
+        return EMPTY;
+    }
     double d = -1;
     int r = sscanf(yytext, "%lf", &d);
     //printf("scanfres %d %lf\n", r, d);

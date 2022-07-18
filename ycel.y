@@ -78,8 +78,8 @@ cell:
           NUMBER              {$$=mk_node_num((TRef){row_num, col_num},$1);}
         | STRING              {$$=mk_node_str((TRef){row_num, col_num},$1);}
         | FORMULA expr        {$$=$2;} 
-        | EMPTY               {;}
-        |                     {;}
+        | EMPTY               {$$=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeEmpty, 0);}
+        |                     {$$=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeEmpty, 0);}
 
 stmt:
       SUM '(' expr_list ')'    {$$=mk_node((TRef){row_num, col_num},OPR(SUM), TypeSum,1,$3);}
@@ -219,10 +219,10 @@ int main(void) {
     yyparse();
     tree_to_table(ch, root_of_ast, 0,0);
 
-#ifdef __DEBUG__
+//#ifdef __DEBUG__
     fprintf(stdout, "--- before calclulation ---\n");
     dump_cell_heap(stdout, ch);
-#endif
+//#endif
 
     calc(ch);
 

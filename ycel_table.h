@@ -53,6 +53,7 @@ void dump_cell_heap(FILE *f, TCellHeap *t);
 EResult update_cell_into_table(TCellHeap *t, size_t row, size_t col, TCell cell);
 EResult update_num_into_table(TCellHeap *t, size_t row, size_t col, double num);
 EResult update_text_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw);
+EResult update_empty_into_table(TCellHeap *t, size_t row, size_t col);
 EResult update_node_into_table(TCellHeap *t, size_t row, size_t col, TNode *nd);
 EResult update_formula_into_table(TCellHeap *t, size_t row, size_t col, const TStringView *sw);
 TCell *find_cell_in_table(TCellHeap *t, size_t row, size_t col);
@@ -61,5 +62,6 @@ void calc(TCellHeap *t);
 
 void tree_to_table(TCellHeap *t, TNode *nd, int row, int col);
 void table_out(FILE *f, TCellHeap *ch, const char colsep, const char *rowsep);
+void pretty_print(FILE *f, TCellHeap *ch);
 
 #endif

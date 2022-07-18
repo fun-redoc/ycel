@@ -18,6 +18,8 @@
 
 #define MIN(x,y) (x<y?x:y)
 #define MAX(x,y) (x<y?y:x)
+#define MIN_ASSIGN(x,y) x=(x<y?x:y)
+#define MAX_ASSIGN(x,y) x=(x<y?y:x)
 
 #define STR_BUF_SIZE 1024
 typedef struct {

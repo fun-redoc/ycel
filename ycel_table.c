@@ -100,6 +100,7 @@ TCell *find_cell_in_table(TCellHeap *t, size_t row, size_t col)
 
 void fill_num_cell(TCell *c, size_t row, size_t col, double num)
 {
+    c->evalStatus = ready;
     c->row = row;
     c->col = col;
     c->kind = KIND_NUM;
@@ -108,6 +109,7 @@ void fill_num_cell(TCell *c, size_t row, size_t col, double num)
 
 void fill_text_cell(TCell *c, size_t row, size_t col, const TStringView *sw)
 {
+    c->evalStatus = ready;
     c->row = row;
     c->col = col;
     c->kind = KIND_TEXT;
@@ -116,6 +118,7 @@ void fill_text_cell(TCell *c, size_t row, size_t col, const TStringView *sw)
 
 void fill_formula_cell(TCell *c, size_t row, size_t col, const TStringView *sw)
 {
+    c->evalStatus = not_yet;
     c->row = row;
     c->col = col;
     c->kind = KIND_FORMULA;
@@ -124,14 +127,16 @@ void fill_formula_cell(TCell *c, size_t row, size_t col, const TStringView *sw)
 
 void fill_node_cell(TCell *c, size_t row, size_t col, TNode *nd)
 {
+    c->evalStatus = not_yet;
     c->row = row;
     c->col = col;
     c->kind = KIND_NODE;
     c->as.node = nd;
 }
 
-void fill_empty_cell(TCell *c, size_t row, size_t col, const char *str)
+void fill_empty_cell(TCell *c, size_t row, size_t col)
 {
+    c->evalStatus = ready;
     c->row = row;
     c->col = col;
     c->kind = KIND_EMPTY;
@@ -186,6 +191,11 @@ EResult update_formula_into_table(TCellHeap *t, size_t row, size_t col, const TS
     fill_formula_cell(&cell, row,col,sw);
     return update_cell_into_table(t, row, col, cell);
 }
+EResult update_empty_into_table(TCellHeap *t, size_t row, size_t col) {
+    TCell cell; 
+    fill_empty_cell(&cell, row,col);
+    return update_cell_into_table(t, row, col, cell);
+}
 EResult update_node_into_table(TCellHeap *t, size_t row, size_t col, TNode *nd)
 {
     assert(nd);
@@ -210,14 +220,15 @@ double calc_node(TCellHeap *t, const TNode *nd)
     assert(nd);
     switch(nd->type)
     {
-        case TypeNum:
-        {
-            return nd->num.value;
-        }
-        break;
+        case TypeEmpty:
         case TypeString:
         {
             assert(NULL &&"Type Error, string is not expected here.");
+        }
+        break;
+        case TypeNum:
+        {
+            return nd->num.value;
         }
         break;
         case TypeRef:
@@ -381,6 +392,12 @@ void tree_to_table(TCellHeap *t, TNode *nd, int row, int col)
         TRY(update_text_into_table(t, row, col, &(nd->str.value)));
        }
        break;
+       case TypeEmpty:
+       {
+        nd->coord = (TRef){col, row};
+        TRY(update_empty_into_table(t, row, col));
+       }
+       break;
        case TypeRef:
        {
        }
@@ -458,7 +475,7 @@ void table_out(FILE *f, TCellHeap *ch, const char colsep, const char *rowsep)
     assert(f);
     // 1. sort by cell reference (row, col), it maybe is not guarantied, that the parse result is in correct order
     qsort (ch->cells, sizeof(ch->cells)/sizeof(TCell*), sizeof(TCell*), comp_cell_ref); 
-    //dump_cell_heap(stdout, ch);
+    dump_cell_heap(stdout, ch);
     // 2. write csv.
     if(ch->last > 0)
     {
@@ -480,6 +497,80 @@ void table_out(FILE *f, TCellHeap *ch, const char colsep, const char *rowsep)
             row = ch->cells[i].row;
             col = ch->cells[i].col;
         }
+    }
+    fprintf(f,"\n");
+    fflush(f);
+    return;
+}
+
+void pretty_print(FILE *f, TCellHeap *ch)
+{
+    size_t col_width[ch->cols];
+    assert(ch);
+    assert(f);
+    if(ch->last > 0)
+    {
+        // 1. sort by cell reference (row, col), it maybe is not guarantied, that the parse result is in correct order
+        qsort (ch->cells, sizeof(ch->cells)/sizeof(TCell*), sizeof(TCell*), comp_cell_ref); 
+        //dump_cell_heap(stdout, ch);
+        // 2. determin col witdths
+        for(int i=0; i < ch->last; i++)
+        {
+            if(ch->cells[i].kind == KIND_TEXT) 
+            {
+                MAX_ASSIGN(col_width[ch->cells[i].col], strlen(get_string(&(ch->cells[i].as.swText))));
+            }
+            if(ch->cells[i].kind == KIND_NUM) 
+            {
+                char tmp_buf[255];
+                MAX_ASSIGN(col_width[ch->cells[i].col], sprintf(tmp_buf, "%f", ch->cells[i].as.number));
+            }
+        }
+        // 3. pretty print it
+        // alloc buffer for cols
+        char *col_buf[ch->cols];
+        for(int i=0; i < ch->cols; i++)
+        {
+            size_t len = col_width[ch->cells[i].col];
+            col_buf[i] = malloc(sizeof(char)*len);
+            memset(col_buf[i], ' ', len-1);
+            memset(&(col_buf[i][len-1]), '\0', 1);
+        }
+
+        size_t row=0;
+        size_t col=0;
+        for(int i=0; i < ch->last; i++)
+        {
+
+            if( row < ch->cells[i].row) 
+            {
+                // fill up empty cells
+                for(int j=col+1; j < ch->cols; j++)
+                {
+                    fprintf(f,"|");
+                    size_t len = col_width[ch->cells[i].col];
+                    memset(col_buf[i], ' ', len-1);
+                    memset(&(col_buf[i][len-1]), '\0', 1);
+                    fputs(col_buf[i], f);
+                }
+                fprintf(f,"\n");
+            }
+            if( col < ch->cells[i].col) fprintf(f,"|");
+            if(ch->cells[i].kind == KIND_TEXT) fprintf(f,"%s",get_string(&(ch->cells[i].as.swText)));
+            if(ch->cells[i].kind == KIND_NUM) fprintf(f, "%f", ch->cells[i].as.number);
+
+            row = ch->cells[i].row;
+            col = ch->cells[i].col;
+        }
+        // release memory for col buffer
+        for(int i=0; i < ch->cols; i++)
+        {
+            free(col_buf[i]);
+        }
+    }
+    else
+    {
+        fprintf(f, "Empty Table.\n");
     }
     fprintf(f,"\n");
     fflush(f);

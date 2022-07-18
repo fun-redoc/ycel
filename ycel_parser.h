@@ -9,7 +9,7 @@
 #define MAX_OPER_NAME_SIZE 100
 
 typedef enum { TypeRef, TypeNum, TypeString, TypeCompound, TypeNeg, 
-               TypeNewLine, TypeNewCell,
+               TypeNewLine, TypeNewCell,TypeEmpty,
                TypeSum, TypeMul, TypeAvg,
                TypePlus,TypeMinus,TypeTimes,TypeDiv,
                TypeParam } ENodeType;

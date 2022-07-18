@@ -1,5 +1,6 @@
 In Work:
 --------
+- fix empty cell printout bug
 - pretty printer, print as nice looking readable table
 
 TODO:

@@ -111,6 +111,12 @@ void dump_node(TCharBuffer *buffer, TNode *nd, const int level)
 
    switch(nd->type)
    {
+       case TypeEmpty:
+       {
+          charBuffer_snprintf(buffer,"%s", "EMPTY");
+          charBuffer_snprintf(buffer,"%s","\n"); 
+       }
+       break;
        case TypeNum:
        {
           charBuffer_snprintf(buffer, "Num=%.2f", nd->num.value);

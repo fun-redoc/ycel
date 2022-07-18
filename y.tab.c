@@ -1474,12 +1474,12 @@ yyreduce:
 
   case 13:
 #line 81 "ycel.y"
-    {;}
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeEmpty, 0);}
     break;
 
   case 14:
 #line 82 "ycel.y"
-    {;}
+    {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeEmpty, 0);}
     break;
 
   case 15:
@@ -1895,10 +1895,10 @@ int main(void) {
     yyparse();
     tree_to_table(ch, root_of_ast, 0,0);
 
-#ifdef __DEBUG__
+//#ifdef __DEBUG__
     fprintf(stdout, "--- before calclulation ---\n");
     dump_cell_heap(stdout, ch);
-#endif
+//#endif
 
     calc(ch);
 
