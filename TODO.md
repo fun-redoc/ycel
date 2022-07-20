@@ -13,6 +13,7 @@ TODO:
 
 IDEAS:
 -----
+- make adding new formulas easieer and more generic. wite a generic formula handler, where you can register new formula handlers (calc, prettyprint, csv print, dump ..)...
 - terminal online gui or some other gui
 - write out resulting table in other formats (json, xml, ...)
 
