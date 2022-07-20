@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define LEN_OF_ARRAY(a) (sizeof(a)/sizeof(*a))
+
 //************ general ************
 // use with error lable in scope
 #define TRY(proc) if(ERR==proc) goto error 

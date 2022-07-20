@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
+#include "ycel.h"
 #include "ycel_misc.h"
 #include "ycel_parser.h"
 #include "ycel_table.h"
@@ -202,7 +204,89 @@ void cleanup()
     clear_string_buffer(&sb);
 }
 
-int main(void) {
+bool streq_no_case(const char *s1, const char *s2)
+{
+    size_t l = strlen(s1);
+    if(l == strlen(s2))
+    {
+        const char *p1 = s1;
+        const char *p2 = s2;
+        for(size_t i=0; i<l;i++, p1++, p2++)
+        {
+            if(tolower(*p1) != tolower(*p2)) return false;
+        }
+        return true;
+    } 
+    else
+    {
+        return false;
+    }
+}
+
+ERunState get_runstate_from_arg(const char *s)
+{
+    size_t n = LEN_OF_ARRAY(run_state_param_map);
+    for(size_t i=0; i < n; i++)
+    {
+        if(streq_no_case(s,run_state_param_map[i].param_name))
+        {
+            return run_state_param_map[i].run_state;
+        }
+    }
+
+    fprintf(stderr, "unknown argument %s.\n", s);
+    exit(1);
+}
+
+const char *get_arg_from_runstate(ERunState rs)
+{
+    size_t n = LEN_OF_ARRAY(run_state_param_map);
+    for(size_t i=0; i < n; i++)
+    {
+        if(run_state_param_map[i].run_state == rs)
+        {
+            return run_state_param_map[i].param_name;
+        }
+    }
+
+    fprintf(stderr, "unknown run state %d.\n", rs);
+    exit(1);
+
+}
+
+void run_state_from_args(int nargs, const char **argv)
+{
+    for(int i=1; i < nargs; i++)
+    {
+        run_state |= get_runstate_from_arg(argv[i]);
+    }
+    // check if run state is consistent (there are no mutually exclusiv settings)
+    for(int i=0; i<LEN_OF_ARRAY(mutually_exclusive_run_states); i++)
+    {
+        //101 110 -> legal    
+        //111 110 -> illegal
+        //010 110 -> legal
+        if((run_state & mutually_exclusive_run_states[i]) == mutually_exclusive_run_states[i])
+        {
+            int mut = mutually_exclusive_run_states[i];
+            fprintf(stderr,"The following params can't go together: ");
+            for(int i= 0; i < 8*sizeof(mut);i++) {
+                int b = mut && 1;
+                mut = mut >> 1;
+                if(b)
+                {
+                    fprintf(stderr,"%s ", get_arg_from_runstate(1<<i));
+                }
+            }
+            fprintf(stderr, ".\n");
+            exit(1);
+        }
+    }
+    return;
+}
+
+int main(int nargs, const char **argv) {
+    run_state_from_args(nargs, argv);
     init_string_buffer(&sb, INITIAL_STRING_BUFFER_SIZE);
     ch = init_cell_heap();
 
@@ -212,9 +296,9 @@ int main(void) {
     //yyin = fopen("test1.csv", "r"); // with Ref
     //yyin = fopen("test0.csv", "r"); // only nums
     //yyin = fopen("test3.csv", "r"); // with Ref loop should fail with assertion error
-//#ifdef __DEBUG__
+#ifdef __DEBUG__
     yyin = fopen("test4.csv", "r"); 
-//#endif
+#endif
 
     yyparse();
     tree_to_table(ch, root_of_ast, 0,0);
@@ -231,8 +315,8 @@ int main(void) {
     dump_cell_heap(stdout, ch);
 #endif
 
-    //table_out(stdout, ch, ',', "\n");
-    pretty_print(stdout, ch);
+    if(run_state & CSV) table_out(stdout, ch, ',', "\n");
+    if(run_state & PRETTY) pretty_print(stdout, ch);
 
     cleanup();
     free_node(root_of_ast);

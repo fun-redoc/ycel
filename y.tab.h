@@ -78,7 +78,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 44 "ycel.y"
+#line 46 "ycel.y"
 {
     double valNum;     
     TStringView valStr;

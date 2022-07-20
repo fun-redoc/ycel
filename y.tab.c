@@ -111,6 +111,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
+#include "ycel.h"
 #include "ycel_misc.h"
 #include "ycel_parser.h"
 #include "ycel_table.h"
@@ -168,7 +170,7 @@ extern FILE* yyin;
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 44 "ycel.y"
+#line 46 "ycel.y"
 {
     double valNum;     
     TStringView valStr;
@@ -176,7 +178,7 @@ typedef union YYSTYPE
     TNode *nPtr;       
 }
 /* Line 193 of yacc.c.  */
-#line 180 "y.tab.c"
+#line 182 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -189,7 +191,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 193 "y.tab.c"
+#line 195 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -483,10 +485,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    64,    64,    67,    68,    69,    70,    73,    74,    75,
-      78,    79,    80,    81,    82,    85,    86,    87,    88,    91,
-      92,    93,    96,    97,    98,    99,   100,   101,   102,   103,
-     104
+       0,    66,    66,    69,    70,    71,    72,    75,    76,    77,
+      80,    81,    82,    83,    84,    87,    88,    89,    90,    93,
+      94,    95,    98,    99,   100,   101,   102,   103,   104,   105,
+     106
 };
 #endif
 
@@ -1418,153 +1420,153 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 64 "ycel.y"
+#line 66 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);root_of_ast = (yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 3:
-#line 67 "ycel.y"
+#line 69 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(LINE_END),TypeNewLine, 2, (yyvsp[(1) - (3)].nPtr) , (yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 4:
-#line 68 "ycel.y"
+#line 70 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(1) - (2)].nPtr);}
     break;
 
   case 5:
-#line 69 "ycel.y"
+#line 71 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 6:
-#line 70 "ycel.y"
+#line 72 "ycel.y"
     {;}
     break;
 
   case 7:
-#line 73 "ycel.y"
+#line 75 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(CELL_END), TypeNewCell, 2, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 8:
-#line 74 "ycel.y"
+#line 76 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 9:
-#line 75 "ycel.y"
+#line 77 "ycel.y"
     {;}
     break;
 
   case 10:
-#line 78 "ycel.y"
+#line 80 "ycel.y"
     {(yyval.nPtr)=mk_node_num((TRef){row_num, col_num},(yyvsp[(1) - (1)].valNum));}
     break;
 
   case 11:
-#line 79 "ycel.y"
+#line 81 "ycel.y"
     {(yyval.nPtr)=mk_node_str((TRef){row_num, col_num},(yyvsp[(1) - (1)].valStr));}
     break;
 
   case 12:
-#line 80 "ycel.y"
+#line 82 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(2) - (2)].nPtr);}
     break;
 
   case 13:
-#line 81 "ycel.y"
+#line 83 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeEmpty, 0);}
     break;
 
   case 14:
-#line 82 "ycel.y"
+#line 84 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(EMPTY), TypeEmpty, 0);}
     break;
 
   case 15:
-#line 85 "ycel.y"
+#line 87 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(SUM), TypeSum,1,(yyvsp[(3) - (4)].nPtr));}
     break;
 
   case 16:
-#line 86 "ycel.y"
+#line 88 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(MUL), TypeMul,1,(yyvsp[(3) - (4)].nPtr));}
     break;
 
   case 17:
-#line 87 "ycel.y"
+#line 89 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(AVG), TypeAvg,1,(yyvsp[(3) - (4)].nPtr));}
     break;
 
   case 18:
-#line 88 "ycel.y"
+#line 90 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(UMINUS), TypeNeg, 1, (yyvsp[(2) - (2)].nPtr));}
     break;
 
   case 19:
-#line 91 "ycel.y"
+#line 93 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 20:
-#line 92 "ycel.y"
+#line 94 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},';', ";", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 21:
-#line 93 "ycel.y"
+#line 95 "ycel.y"
     {check_type((yyvsp[(1) - (3)].nPtr), TypeRef); check_type((yyvsp[(3) - (3)].nPtr), TypeRef); (yyval.nPtr)=mk_node((TRef){row_num, col_num},':', ":", TypeParam, 2, (yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 22:
-#line 96 "ycel.y"
+#line 98 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(1) - (1)].nPtr);}
     break;
 
   case 23:
-#line 97 "ycel.y"
+#line 99 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},'+',"+", TypePlus,2,(yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr)) ;}
     break;
 
   case 24:
-#line 98 "ycel.y"
+#line 100 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},'-',"-", TypeMinus,2,(yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 25:
-#line 99 "ycel.y"
+#line 101 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},'*',"*", TypeTimes,2,(yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr));}
     break;
 
   case 26:
-#line 100 "ycel.y"
+#line 102 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},'/',"/", TypeDiv,2,(yyvsp[(1) - (3)].nPtr),(yyvsp[(3) - (3)].nPtr))  ;}
     break;
 
   case 27:
-#line 101 "ycel.y"
+#line 103 "ycel.y"
     {(yyval.nPtr)=mk_node_num((TRef){row_num, col_num},(yyvsp[(1) - (1)].valNum));}
     break;
 
   case 28:
-#line 102 "ycel.y"
+#line 104 "ycel.y"
     {(yyval.nPtr)=mk_node_ref((TRef){row_num, col_num},(yyvsp[(1) - (1)].ref));}
     break;
 
   case 29:
-#line 103 "ycel.y"
+#line 105 "ycel.y"
     {(yyval.nPtr)=mk_node((TRef){row_num, col_num},OPR(UMINUS), TypeNeg, 1, (yyvsp[(2) - (2)].nPtr));}
     break;
 
   case 30:
-#line 104 "ycel.y"
+#line 106 "ycel.y"
     {(yyval.nPtr)=(yyvsp[(2) - (3)].nPtr);}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1568 "y.tab.c"
+#line 1570 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1778,7 +1780,7 @@ yyreturn:
 }
 
 
-#line 106 "ycel.y"
+#line 108 "ycel.y"
 
 
 TNode *mk_node_num(TRef coord, double value) {
@@ -1878,7 +1880,89 @@ void cleanup()
     clear_string_buffer(&sb);
 }
 
-int main(void) {
+bool streq_no_case(const char *s1, const char *s2)
+{
+    size_t l = strlen(s1);
+    if(l == strlen(s2))
+    {
+        const char *p1 = s1;
+        const char *p2 = s2;
+        for(size_t i=0; i<l;i++, p1++, p2++)
+        {
+            if(tolower(*p1) != tolower(*p2)) return false;
+        }
+        return true;
+    } 
+    else
+    {
+        return false;
+    }
+}
+
+ERunState get_runstate_from_arg(const char *s)
+{
+    size_t n = LEN_OF_ARRAY(run_state_param_map);
+    for(size_t i=0; i < n; i++)
+    {
+        if(streq_no_case(s,run_state_param_map[i].param_name))
+        {
+            return run_state_param_map[i].run_state;
+        }
+    }
+
+    fprintf(stderr, "unknown argument %s.\n", s);
+    exit(1);
+}
+
+const char *get_arg_from_runstate(ERunState rs)
+{
+    size_t n = LEN_OF_ARRAY(run_state_param_map);
+    for(size_t i=0; i < n; i++)
+    {
+        if(run_state_param_map[i].run_state == rs)
+        {
+            return run_state_param_map[i].param_name;
+        }
+    }
+
+    fprintf(stderr, "unknown run state %d.\n", rs);
+    exit(1);
+
+}
+
+void run_state_from_args(int nargs, const char **argv)
+{
+    for(int i=1; i < nargs; i++)
+    {
+        run_state |= get_runstate_from_arg(argv[i]);
+    }
+    // check if run state is consistent (there are no mutually exclusiv settings)
+    for(int i=0; i<LEN_OF_ARRAY(mutually_exclusive_run_states); i++)
+    {
+        //101 110 -> legal    
+        //111 110 -> illegal
+        //010 110 -> legal
+        if((run_state & mutually_exclusive_run_states[i]) == mutually_exclusive_run_states[i])
+        {
+            int mut = mutually_exclusive_run_states[i];
+            fprintf(stderr,"The following params can't go together: ");
+            for(int i= 0; i < 8*sizeof(mut);i++) {
+                int b = mut && 1;
+                mut = mut >> 1;
+                if(b)
+                {
+                    fprintf(stderr,"%s ", get_arg_from_runstate(1<<i));
+                }
+            }
+            fprintf(stderr, ".\n");
+            exit(1);
+        }
+    }
+    return;
+}
+
+int main(int nargs, const char **argv) {
+    run_state_from_args(nargs, argv);
     init_string_buffer(&sb, INITIAL_STRING_BUFFER_SIZE);
     ch = init_cell_heap();
 
@@ -1888,9 +1972,9 @@ int main(void) {
     //yyin = fopen("test1.csv", "r"); // with Ref
     //yyin = fopen("test0.csv", "r"); // only nums
     //yyin = fopen("test3.csv", "r"); // with Ref loop should fail with assertion error
-//#ifdef __DEBUG__
+#ifdef __DEBUG__
     yyin = fopen("test4.csv", "r"); 
-//#endif
+#endif
 
     yyparse();
     tree_to_table(ch, root_of_ast, 0,0);
@@ -1907,8 +1991,8 @@ int main(void) {
     dump_cell_heap(stdout, ch);
 #endif
 
-    //table_out(stdout, ch, ',', "\n");
-    pretty_print(stdout, ch);
+    if(run_state & CSV) table_out(stdout, ch, ',', "\n");
+    if(run_state & PRETTY) pretty_print(stdout, ch);
 
     cleanup();
     free_node(root_of_ast);
